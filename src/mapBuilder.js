@@ -10,6 +10,54 @@ import {
   createWaterfallTexture
 } from './textures.js';
 
+/**
+ * 建立真正的正向雙面看板網格群組（前後兩面皆清晰可見、正向閱讀無鏡像反字、無負縮放與破圖剔除問題）
+ * @param {number} width 看板 3D 寬度
+ * @param {number} height 看板 3D 高度
+ * @param {number} canvasWidth Canvas 像素寬度
+ * @param {number} canvasHeight Canvas 像素高度
+ * @param {Function} drawFn 繪製回呼函式 (ctx, width, height)
+ * @param {number} zOffset 正面與背面平面距中心原點的 Z 軸位移量（米）
+ * @returns {THREE.Group} 包含前後兩片正向網格的 Group
+ */
+function createDoubleSidedBoardMesh(width, height, canvasWidth, canvasHeight, drawFn, zOffset = 0.06) {
+  const group = new THREE.Group();
+
+  // 1. 正面畫布與網格
+  const frontCanvas = document.createElement('canvas');
+  frontCanvas.width = canvasWidth;
+  frontCanvas.height = canvasHeight;
+  const fctx = frontCanvas.getContext('2d');
+  drawFn(fctx, canvasWidth, canvasHeight);
+
+  const frontTex = new THREE.CanvasTexture(frontCanvas);
+  const frontMat = new THREE.MeshBasicMaterial({ map: frontTex, side: THREE.DoubleSide });
+  const frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), frontMat);
+  frontMesh.position.set(0, 0, zOffset);
+  group.add(frontMesh);
+
+  // 2. 背面畫布與網格：
+  // 透過 2D 畫布水平鏡像翻轉 (translate + scale(-1, 1))，
+  // 配合 3D 網格旋轉 180 度 (rotation.y = Math.PI)，
+  // 兩者恰好抵消，達成前後雙面皆為正向左至右閱讀，且保持 scale(1,1,1) 正確法向量與雙面渲染。
+  const backCanvas = document.createElement('canvas');
+  backCanvas.width = canvasWidth;
+  backCanvas.height = canvasHeight;
+  const bctx = backCanvas.getContext('2d');
+  bctx.translate(canvasWidth, 0);
+  bctx.scale(-1, 1);
+  drawFn(bctx, canvasWidth, canvasHeight);
+
+  const backTex = new THREE.CanvasTexture(backCanvas);
+  const backMat = new THREE.MeshBasicMaterial({ map: backTex, side: THREE.DoubleSide });
+  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), backMat);
+  backMesh.position.set(0, 0, -zOffset);
+  backMesh.rotation.y = Math.PI;
+  group.add(backMesh);
+
+  return group;
+}
+
 export function buildJiaoxiWorld(scene) {
   const interactiveObjects = [];
   const animatedUpdaters = [];
@@ -87,37 +135,23 @@ export function buildJiaoxiWorld(scene) {
     frame.castShadow = true;
     group.add(frame);
 
-    const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 160;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#1e272e';
-    ctx.roundRect(10, 10, 492, 140, 20);
-    ctx.fill();
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 8;
-    ctx.stroke();
+    const signBoard = createDoubleSidedBoardMesh(3.4, 1.1, 512, 160, (ctx, w, h) => {
+      ctx.fillStyle = '#1e272e';
+      ctx.roundRect(10, 10, w - 20, h - 20, 20);
+      ctx.fill();
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 8;
+      ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 42px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(title, 256, 80);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 42px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(title, w / 2, h / 2);
+    }, 0.08);
 
-    const texture = new THREE.CanvasTexture(canvas);
-    const boardMat = new THREE.MeshBasicMaterial({ map: texture });
-    
-    // 正面看板（朝向 +Z）
-    const boardFront = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.1), boardMat);
-    boardFront.position.set(0, 3.1, 0.08);
-    group.add(boardFront);
-
-    // 背面看板（朝向 -Z，透過 scale.x = -1 修正 180 度翻轉造成的水平鏡像反字，雙面皆為正向左至右閱讀）
-    const boardBack = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.1), boardMat);
-    boardBack.rotation.y = Math.PI;
-    boardBack.scale.x = -1;
-    boardBack.position.set(0, 3.1, -0.08);
-    group.add(boardBack);
+    signBoard.position.set(0, 3.1, 0);
+    group.add(signBoard);
 
     scene.add(group);
     return group;
@@ -586,34 +620,21 @@ function createHotelBuilding(scene, x, y, z, hotelName, wallColor) {
     }
   }
 
-  // 頂樓醒目發光招牌
-  const signCanvas = document.createElement('canvas');
-  signCanvas.width = 512;
-  signCanvas.height = 96;
-  const sctx = signCanvas.getContext('2d');
-  sctx.fillStyle = '#0c2461';
-  sctx.fillRect(0, 0, 512, 96);
-  sctx.strokeStyle = '#f6b93b';
-  sctx.lineWidth = 6;
-  sctx.strokeRect(4, 4, 504, 88);
-  sctx.fillStyle = '#f6b93b';
-  sctx.font = 'bold 36px sans-serif';
-  sctx.textAlign = 'center';
-  sctx.textBaseline = 'middle';
-  sctx.fillText(hotelName, 256, 48);
-
-  const signTex = new THREE.CanvasTexture(signCanvas);
-  // 南側景觀面招牌
-  const signMeshSouth = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.2), new THREE.MeshBasicMaterial({ map: signTex }));
-  signMeshSouth.position.set(0, 15.2, 5.06);
-  group.add(signMeshSouth);
-
-  // 北側主要街道面招牌（面向中央大道，修正鏡像）
-  const signMeshNorth = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.2), new THREE.MeshBasicMaterial({ map: signTex }));
-  signMeshNorth.position.set(0, 15.2, -5.06);
-  signMeshNorth.rotation.y = Math.PI;
-  signMeshNorth.scale.x = -1;
-  group.add(signMeshNorth);
+  // 頂樓醒目發光雙面招牌（南側景觀面 + 北側街道面皆正向清晰）
+  const hotelSign = createDoubleSidedBoardMesh(12, 2.2, 512, 96, (sctx, w, h) => {
+    sctx.fillStyle = '#0c2461';
+    sctx.fillRect(0, 0, w, h);
+    sctx.strokeStyle = '#f6b93b';
+    sctx.lineWidth = 6;
+    sctx.strokeRect(4, 4, w - 8, h - 8);
+    sctx.fillStyle = '#f6b93b';
+    sctx.font = 'bold 36px sans-serif';
+    sctx.textAlign = 'center';
+    sctx.textBaseline = 'middle';
+    sctx.fillText(hotelName, w / 2, h / 2);
+  }, 5.06);
+  hotelSign.position.set(0, 15.2, 0);
+  group.add(hotelSign);
 
   scene.add(group);
 }
@@ -644,26 +665,21 @@ function createShopBuilding(scene, x, y, z, shopName, wallColor, awningColor) {
   awning.castShadow = true;
   group.add(awning);
 
-  // 店面大招牌
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 96;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = awningColor;
-  ctx.fillRect(0, 0, 512, 96);
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(4, 4, 504, 88);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 30px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(shopName, 256, 48);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(10, 1.8), new THREE.MeshBasicMaterial({ map: tex }));
-  sign.position.set(0, 5.8, 4.56);
-  group.add(sign);
+  // 店面大招牌（雙面皆正向可讀）
+  const shopSign = createDoubleSidedBoardMesh(10, 1.8, 512, 96, (ctx, w, h) => {
+    ctx.fillStyle = awningColor;
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(4, 4, w - 8, h - 8);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 30px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(shopName, w / 2, h / 2);
+  }, 4.56);
+  shopSign.position.set(0, 5.8, 0);
+  group.add(shopSign);
 
   scene.add(group);
 }
@@ -745,38 +761,30 @@ function createCentralPlaza(scene, animatedUpdaters, createRing) {
   frame.position.set(0, 2.4, 0);
   boardGroup.add(frame);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = 512;
-  canvas.height = 256;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fef9e7';
-  ctx.fillRect(0, 0, 512, 256);
-  ctx.fillStyle = '#b71540';
-  ctx.font = 'bold 28px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('【礁溪尋寶・旅人任務板】', 256, 45);
+  // 雙面正向旅人任務佈告板（正面面向南方起點、背面面向北方步道）
+  const taskBoardMesh = createDoubleSidedBoardMesh(4.2, 1.9, 512, 256, (ctx, w, h) => {
+    ctx.fillStyle = '#fef9e7';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#2c3e50';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(6, 6, w - 12, h - 12);
 
-  ctx.fillStyle = '#2c3e50';
-  ctx.font = '20px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('1. 湯圍溝公園：溫泉水質告示牌（美人湯）', 40, 90);
-  ctx.fillText('2. 湯圍溝公園：溫泉農產蔬果籃（水蕹菜）', 40, 125);
-  ctx.fillText('3. 礁溪協天廟：關帝鎮廟文化卡（蠶絲神像）', 40, 160);
-  ctx.fillText('4. 礁溪協天廟：春祭乞龜祝壽桌（平安壽龜）', 40, 195);
-  ctx.fillText('5. 五峰旗山區：觀瀑明信片展架（三層飛瀑）', 40, 230);
+    ctx.fillStyle = '#b71540';
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('【礁溪尋寶・旅人任務板】', w / 2, 45);
 
-  const texture = new THREE.CanvasTexture(canvas);
-  // 正面任務板（面向南方起點）
-  const poster = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.9), new THREE.MeshBasicMaterial({ map: texture }));
-  poster.position.set(0, 2.4, 0.12);
-  boardGroup.add(poster);
-
-  // 背面任務板（面向北方步道，修正鏡像）
-  const posterBack = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.9), new THREE.MeshBasicMaterial({ map: texture }));
-  posterBack.position.set(0, 2.4, -0.12);
-  posterBack.rotation.y = Math.PI;
-  posterBack.scale.x = -1;
-  boardGroup.add(posterBack);
+    ctx.fillStyle = '#2c3e50';
+    ctx.font = '20px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('1. 湯圍溝公園：溫泉水質告示牌（美人湯）', 40, 90);
+    ctx.fillText('2. 湯圍溝公園：溫泉農產蔬果籃（水蕹菜）', 40, 125);
+    ctx.fillText('3. 礁溪協天廟：關帝鎮廟文化卡（蠶絲神像）', 40, 160);
+    ctx.fillText('4. 礁溪協天廟：春祭乞龜祝壽桌（平安壽龜）', 40, 195);
+    ctx.fillText('5. 五峰旗山區：觀瀑明信片展架（三層飛瀑）', 40, 230);
+  }, 0.12);
+  taskBoardMesh.position.set(0, 2.4, 0);
+  boardGroup.add(taskBoardMesh);
   scene.add(boardGroup);
 
   const chestGroup = new THREE.Group();
@@ -1055,33 +1063,21 @@ function createTemplePaifang(parent, x, y, z) {
   beam.position.set(0, 5.2, 0);
   paifang.add(beam);
 
-  const plaqueCanvas = document.createElement('canvas');
-  plaqueCanvas.width = 256;
-  plaqueCanvas.height = 64;
-  const pctx = plaqueCanvas.getContext('2d');
-  pctx.fillStyle = '#1e272e';
-  pctx.fillRect(0, 0, 256, 64);
-  pctx.strokeStyle = '#ffd700';
-  pctx.lineWidth = 4;
-  pctx.strokeRect(2, 2, 252, 60);
-  pctx.fillStyle = '#ffd700';
-  pctx.font = 'bold 24px serif';
-  pctx.textAlign = 'center';
-  pctx.textBaseline = 'middle';
-  pctx.fillText('敕建協天廟', 128, 32);
-
-  const plaqueTex = new THREE.CanvasTexture(plaqueCanvas);
-  // 正面匾額（朝向牌樓迎賓面）
-  const plaqueFront = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: plaqueTex }));
-  plaqueFront.position.set(0, 4.4, 0.22);
-  paifang.add(plaqueFront);
-
-  // 背面匾額（朝向廟埕面，修正水平鏡像反字，雙面皆為正向左至右閱讀）
-  const plaqueBack = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: plaqueTex }));
-  plaqueBack.position.set(0, 4.4, -0.22);
-  plaqueBack.rotation.y = Math.PI;
-  plaqueBack.scale.x = -1;
-  paifang.add(plaqueBack);
+  // 牌樓雙面迎賓匾額（南側向外迎賓 + 北側向內廟埕皆正向無鏡像）
+  const paifangPlaque = createDoubleSidedBoardMesh(2.4, 0.6, 256, 64, (pctx, w, h) => {
+    pctx.fillStyle = '#1e272e';
+    pctx.fillRect(0, 0, w, h);
+    pctx.strokeStyle = '#ffd700';
+    pctx.lineWidth = 4;
+    pctx.strokeRect(2, 2, w - 4, h - 4);
+    pctx.fillStyle = '#ffd700';
+    pctx.font = 'bold 24px serif';
+    pctx.textAlign = 'center';
+    pctx.textBaseline = 'middle';
+    pctx.fillText('敕建協天廟', w / 2, h / 2);
+  }, 0.22);
+  paifangPlaque.position.set(0, 4.4, 0);
+  paifang.add(paifangPlaque);
 
   const paifangRoof = new THREE.Mesh(new THREE.BoxGeometry(11.5, 0.7, 1.2), goldMat);
   paifangRoof.position.set(0, 5.8, 0);
@@ -1339,11 +1335,17 @@ function createPhotoDisplay(parent, imgUrl, x, y, z, label) {
     const frame = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.2, 0.15), frameMat);
     frame.position.set(x, y, z);
 
-    const photoMat = new THREE.MeshBasicMaterial({ map: texture });
-    const photo = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
-    photo.position.set(x, y, z + 0.08);
+    const photoMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+    // 正面照片
+    const photoFront = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
+    photoFront.position.set(x, y, z + 0.08);
 
-    parent.add(frame, photo);
+    // 背面照片（雙面皆可觀賞實景照片）
+    const photoBack = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
+    photoBack.position.set(x, y, z - 0.08);
+    photoBack.rotation.y = Math.PI;
+
+    parent.add(frame, photoFront, photoBack);
   });
 }
 
@@ -1360,36 +1362,22 @@ function createSignBoardObject(scene, x, y, z, text) {
   board.position.set(0, 1.8, 0);
   group.add(board);
 
-  // 繪製線索告示看板（正面與背面皆為正向左至右，無鏡像反字）
-  const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#2c3e50';
-  ctx.fillRect(0, 0, 256, 128);
-  ctx.strokeStyle = '#f39c12';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(4, 4, 248, 120);
-  ctx.fillStyle = '#f1c40f';
-  ctx.font = 'bold 22px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, 128, 64);
+  // 線索雙面告示看板（前後兩面皆為正向左至右，無鏡像反字、無破圖）
+  const clueSign = createDoubleSidedBoardMesh(1.48, 0.88, 256, 128, (ctx, w, h) => {
+    ctx.fillStyle = '#2c3e50';
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(4, 4, w - 8, h - 8);
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(text, w / 2, h / 2);
+  }, 0.055);
 
-  const tex = new THREE.CanvasTexture(canvas);
-  const textMat = new THREE.MeshBasicMaterial({ map: tex });
-
-  // 正面
-  const frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 0.88), textMat);
-  frontMesh.position.set(0, 1.8, 0.055);
-  group.add(frontMesh);
-
-  // 背面（修正 180 度翻轉鏡像，雙面皆為正向）
-  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 0.88), textMat);
-  backMesh.position.set(0, 1.8, -0.055);
-  backMesh.rotation.y = Math.PI;
-  backMesh.scale.x = -1;
-  group.add(backMesh);
+  clueSign.position.set(0, 1.8, 0);
+  group.add(clueSign);
 
   scene.add(group);
 }

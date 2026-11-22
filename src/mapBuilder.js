@@ -380,10 +380,10 @@ function buildJiaoxiTownBuildings(scene, colliders) {
 // 註冊三大景點與中央廣場的實體障礙碰撞體（全地圖零穿模體系）
 function registerWorldColliders(colliders) {
   // 1. 中央廣場任務佈告板
-  colliders.push({ type: 'box', minX: -2.5, maxX: 2.5, minZ: -3.4, maxZ: -2.5 });
+  colliders.push({ type: 'box', minX: -2.2, maxX: 2.2, minZ: -3.4, maxZ: -2.8 });
 
   // 2. 文化寶箱
-  colliders.push({ type: 'box', minX: 3.2, maxX: 4.8, minZ: -0.6, maxZ: 0.6 });
+  colliders.push({ type: 'box', minX: 3.4, maxX: 4.6, minZ: -0.6, maxZ: 0.6 });
 
   // 3. 街區木長椅 (4張)
   colliders.push({ type: 'box', minX: -7.2, maxX: -4.8, minZ: -2.3, maxZ: -1.3 });
@@ -399,20 +399,20 @@ function registerWorldColliders(colliders) {
   // 五峰旗入口看板 (0, 36)
   colliders.push({ type: 'box', minX: -2.2, maxX: 2.2, minZ: 35.4, maxZ: 36.6 });
 
-  // 5. 五大任務展台與實體道具
-  // 任務一：湯圍泉質告示牌 (-39, -15)
-  colliders.push({ type: 'box', minX: -40.0, maxX: -38.0, minZ: -15.5, maxZ: -14.5 });
-  // 任務二：溫泉農產蔬果籃 (-31, -15)
-  colliders.push({ type: 'circle', x: -31.0, z: -15.0, radius: 0.85 });
-  // 任務三：蠶絲神像展架 (30, -20)
-  colliders.push({ type: 'box', minX: 29.0, maxX: 31.0, minZ: -20.5, maxZ: -19.5 });
-  // 任務四：春祭乞龜祝壽供桌 (40, -20)
-  colliders.push({ type: 'box', minX: 38.8, maxX: 41.2, minZ: -20.8, maxZ: -19.2 });
-  // 任務五：觀瀑明信片展台 (0, 44)
-  colliders.push({ type: 'box', minX: -1.0, maxX: 1.0, minZ: 43.5, maxZ: 44.5 });
+  // 5. 五大任務展台與實體道具（碰撞體精準包覆於展架本體，不阻礙玩家踏入互動圓圈）
+  // 任務一：湯圍泉質告示牌本體 (-39, -16.0)
+  colliders.push({ type: 'box', minX: -39.8, maxX: -38.2, minZ: -16.5, maxZ: -15.5 });
+  // 任務二：溫泉農產蔬果籃本體 (-31, -16.0)
+  colliders.push({ type: 'circle', x: -31.0, z: -16.0, radius: 0.7 });
+  // 任務三：蠶絲神像展架本體 (29.5, -16.2)
+  colliders.push({ type: 'box', minX: 28.7, maxX: 30.3, minZ: -16.7, maxZ: -15.7 });
+  // 任務四：春祭乞龜祝壽供桌本體 (40.5, -16.2)
+  colliders.push({ type: 'box', minX: 39.5, maxX: 41.5, minZ: -16.8, maxZ: -15.6 });
+  // 任務五：觀瀑明信片展台本體 (0, 45.2)
+  colliders.push({ type: 'box', minX: -0.9, maxX: 0.9, minZ: 44.7, maxZ: 45.7 });
 
-  // 6. 協天廟大殿主體（阻擋穿入紅牆）
-  colliders.push({ type: 'box', minX: 25.5, maxX: 44.5, minZ: -33.5, maxZ: -19.0 });
+  // 6. 協天廟大殿主體（阻擋穿入紅牆，保留開闊前殿中庭與通道）
+  colliders.push({ type: 'box', minX: 26.2, maxX: 43.8, minZ: -33.2, maxZ: -20.2 });
   // 協天廟石獅子一對
   colliders.push({ type: 'box', minX: 29.3, maxX: 30.7, minZ: -17.2, maxZ: -15.8 });
   colliders.push({ type: 'box', minX: 39.3, maxX: 40.7, minZ: -17.2, maxZ: -15.8 });
@@ -431,9 +431,10 @@ function registerWorldColliders(colliders) {
   colliders.push({ type: 'circle', x: -27.0, z: -21.0, radius: 0.35 });
   colliders.push({ type: 'circle', x: -43.0, z: -9.0, radius: 0.35 });
   colliders.push({ type: 'circle', x: -27.0, z: -9.0, radius: 0.35 });
-  // 湯圍溝木棧道南北護欄
-  colliders.push({ type: 'box', minX: -45.0, maxX: -25.0, minZ: -23.2, maxZ: -22.4 });
-  colliders.push({ type: 'box', minX: -45.0, maxX: -25.0, minZ: -7.6, maxZ: -6.8 });
+  // 湯圍溝木棧道護欄（保留中央寬敞迎賓入口 x in [-38.5, -31.5]，絕不封堵進出）
+  colliders.push({ type: 'box', minX: -45.0, maxX: -25.0, minZ: -23.2, maxZ: -22.4 }); // 南側護欄
+  colliders.push({ type: 'box', minX: -45.0, maxX: -38.5, minZ: -7.6, maxZ: -6.8 }); // 北側左翼護欄
+  colliders.push({ type: 'box', minX: -31.5, maxX: -25.0, minZ: -7.6, maxZ: -6.8 }); // 北側右翼護欄
   // 湯圍溝石燈籠
   colliders.push({ type: 'circle', x: -43.5, z: -8.5, radius: 0.5 });
   colliders.push({ type: 'circle', x: -26.5, z: -8.5, radius: 0.5 });
@@ -702,20 +703,31 @@ function buildTangweigouPark(scene, animatedUpdaters, createRing) {
     roughness: 0.8,
     metalness: 0.1
   });
-  const deck = new THREE.Mesh(new THREE.BoxGeometry(20, 0.4, 16), deckMat);
-  deck.position.set(0, 0.2, 0);
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(20, 0.12, 16), deckMat);
+  deck.position.set(0, 0.06, 0);
   deck.receiveShadow = true;
   root.add(deck);
 
   const railMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
-  [-7.8, 7.8].forEach(rz => {
-    const railTop = new THREE.Mesh(new THREE.BoxGeometry(19.6, 0.12, 0.12), railMat);
-    railTop.position.set(0, 1.2, rz);
+  // 南側完整護欄
+  const southRailTop = new THREE.Mesh(new THREE.BoxGeometry(19.6, 0.12, 0.12), railMat);
+  southRailTop.position.set(0, 1.0, -7.8);
+  root.add(southRailTop);
+  for (let rx = -9; rx <= 9; rx += 3) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.9, 6), railMat);
+    post.position.set(rx, 0.55, -7.8);
+    root.add(post);
+  }
+
+  // 北側迎賓入口兩翼護欄（中央留出 6.6m 開闊走道，方便旅人流暢步入公園）
+  [-6.5, 6.5].forEach(cx => {
+    const railTop = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.12, 0.12), railMat);
+    railTop.position.set(cx, 1.0, 7.8);
     root.add(railTop);
 
-    for (let rx = -9; rx <= 9; rx += 3) {
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.0, 6), railMat);
-      post.position.set(rx, 0.7, rz);
+    for (let rx = cx - 2.5; rx <= cx + 2.5; rx += 2.5) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.9, 6), railMat);
+      post.position.set(rx, 0.55, 7.8);
       root.add(post);
     }
   });
@@ -800,11 +812,11 @@ function buildTangweigouPark(scene, animatedUpdaters, createRing) {
   createPhotoDisplay(root, 'images/tangweigou.jpg', -7, 2.0, 6, '湯圍溝實景照片');
   scene.add(root);
 
-  createRing(-39, -15, '任務一：溫泉水質告示牌', 'task', 'task_spring');
-  createSignBoardObject(scene, -39, 0, -15, '湯圍泉質告示牌');
+  createRing(-39, -14.6, '任務一：溫泉水質告示牌', 'task', 'task_spring');
+  createSignBoardObject(scene, -39, 0, -16.0, '湯圍泉質告示牌');
 
-  createRing(-31, -15, '任務二：溫泉農產蔬果籃', 'task', 'task_crops');
-  createCropBasketObject(scene, -31, 0, -15);
+  createRing(-31, -14.6, '任務二：溫泉農產蔬果籃', 'task', 'task_crops');
+  createCropBasketObject(scene, -31, 0, -16.0);
 }
 
 // 景點二：礁溪協天廟（古樸青石地磚廣場）
@@ -818,39 +830,39 @@ function buildXietianTemple(scene, animatedUpdaters, createRing) {
     roughness: 0.9,
     metalness: 0.1
   });
-  const templeBase = new THREE.Mesh(new THREE.BoxGeometry(24, 1.2, 20), baseMat);
-  templeBase.position.set(0, 0.6, 0);
+  const templeBase = new THREE.Mesh(new THREE.BoxGeometry(24, 0.12, 20), baseMat);
+  templeBase.position.set(0, 0.06, 0);
   templeBase.receiveShadow = true;
   root.add(templeBase);
 
   const wallMat = new THREE.MeshLambertMaterial({ color: 0xc0392b });
   const mainHall = new THREE.Mesh(new THREE.BoxGeometry(17, 5.5, 13), wallMat);
-  mainHall.position.set(0, 3.8, -1.5);
+  mainHall.position.set(0, 2.8, -1.5);
   mainHall.castShadow = true;
   root.add(mainHall);
 
   const roofMat = new THREE.MeshLambertMaterial({ color: 0xf39c12 });
   const lowerRoof = new THREE.Mesh(new THREE.BoxGeometry(20, 1.3, 16), roofMat);
-  lowerRoof.position.set(0, 6.7, -1.5);
+  lowerRoof.position.set(0, 5.7, -1.5);
   lowerRoof.castShadow = true;
   root.add(lowerRoof);
 
   const upperRoof = new THREE.Mesh(new THREE.BoxGeometry(15, 1.5, 11), roofMat);
-  upperRoof.position.set(0, 8.0, -1.5);
+  upperRoof.position.set(0, 7.0, -1.5);
   upperRoof.castShadow = true;
   root.add(upperRoof);
 
   const colMat = new THREE.MeshLambertMaterial({ color: 0xd63031 });
   [-7, -2.5, 2.5, 7].forEach(cx => {
     const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.35, 5.2, 16), colMat);
-    pillar.position.set(cx, 3.8, 6.2);
+    pillar.position.set(cx, 2.7, 6.2);
     pillar.castShadow = true;
     root.add(pillar);
   });
 
   const bronzeMat = new THREE.MeshStandardMaterial({ color: 0x3d3d3d, metalness: 0.8, roughness: 0.4 });
   const burner = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.65, 1.3, 16), bronzeMat);
-  burner.position.set(0, 1.8, 7.8);
+  burner.position.set(0, 0.7, 7.8);
   root.add(burner);
 
   const incenseGeo = new THREE.BufferGeometry();
@@ -858,7 +870,7 @@ function buildXietianTemple(scene, animatedUpdaters, createRing) {
   const incensePos = new Float32Array(incenseCount * 3);
   for (let i = 0; i < incenseCount; i++) {
     incensePos[i * 3] = (Math.random() - 0.5) * 0.4;
-    incensePos[i * 3 + 1] = 2.4 + Math.random() * 2.5;
+    incensePos[i * 3 + 1] = 1.3 + Math.random() * 2.5;
     incensePos[i * 3 + 2] = 7.8 + (Math.random() - 0.5) * 0.4;
   }
   incenseGeo.setAttribute('position', new THREE.BufferAttribute(incensePos, 3));
@@ -866,8 +878,8 @@ function buildXietianTemple(scene, animatedUpdaters, createRing) {
   const incense = new THREE.Points(incenseGeo, incenseMat);
   root.add(incense);
 
-  createStoneLion(root, -5, 1.2, 8.5);
-  createStoneLion(root, 5, 1.2, 8.5);
+  createStoneLion(root, -5, 0, 8.5);
+  createStoneLion(root, 5, 0, 8.5);
   createTemplePaifang(root, 0, 0, 13.5);
 
   animatedUpdaters.push((delta, time) => {
@@ -875,21 +887,21 @@ function buildXietianTemple(scene, animatedUpdaters, createRing) {
     for (let i = 0; i < incenseCount; i++) {
       arr[i * 3 + 1] += delta * 0.85;
       arr[i * 3] += Math.sin(time * 3 + i) * 0.012;
-      if (arr[i * 3 + 1] > 5.5) {
-        arr[i * 3 + 1] = 2.4;
+      if (arr[i * 3 + 1] > 4.5) {
+        arr[i * 3 + 1] = 1.3;
       }
     }
     incenseGeo.attributes.position.needsUpdate = true;
   });
 
-  createPhotoDisplay(root, 'images/xietian_temple.jpg', 9, 2.6, 6, '協天廟實景照片');
+  createPhotoDisplay(root, 'images/xietian_temple.jpg', 9, 1.6, 6, '協天廟實景照片');
   scene.add(root);
 
-  createRing(30, -20, '任務三：協天廟文化展架', 'task', 'task_temple');
-  createSignBoardObject(scene, 30, 0, -20, '蠶絲神像展架');
+  createRing(29.5, -15.0, '任務三：協天廟文化展架', 'task', 'task_temple');
+  createSignBoardObject(scene, 29.5, 0, -16.2, '蠶絲神像展架');
 
-  createRing(40, -20, '任務四：春祭乞龜祝壽供桌', 'task', 'task_turtle');
-  createTurtleAltarObject(scene, 40, 0, -20);
+  createRing(40.5, -15.0, '任務四：春祭乞龜祝壽供桌', 'task', 'task_turtle');
+  createTurtleAltarObject(scene, 40.5, 0, -16.2);
 }
 
 function createStoneLion(parent, x, y, z) {
@@ -1021,12 +1033,12 @@ function buildWufengqiFalls(scene, animatedUpdaters, createRing) {
     mistGeo.attributes.position.needsUpdate = true;
   });
 
-  createViewingPavilion(root, 0, 0.25, -9.5);
-  createPhotoDisplay(root, 'images/wufengqi.jpg', -4, 2.0, -8.5, '五峰旗實景照片');
+  createViewingPavilion(root, 0, 0, -9.5);
+  createPhotoDisplay(root, 'images/wufengqi.jpg', -4, 1.8, -8.5, '五峰旗實景照片');
   scene.add(root);
 
-  createRing(0, 44, '任務五：五峰飛瀑觀景明信片', 'task', 'task_waterfall');
-  createSignBoardObject(scene, 0, 0, 44, '觀瀑明信片展台');
+  createRing(0, 43.8, '任務五：五峰飛瀑觀景明信片', 'task', 'task_waterfall');
+  createSignBoardObject(scene, 0, 0, 45.2, '觀瀑明信片展台');
 }
 
 function createViewingPavilion(parent, x, y, z) {
@@ -1034,7 +1046,8 @@ function createViewingPavilion(parent, x, y, z) {
   group.position.set(x, y, z);
 
   const deckMat = new THREE.MeshLambertMaterial({ color: 0x795548 });
-  const viewingDeck = new THREE.Mesh(new THREE.BoxGeometry(11, 0.5, 9), deckMat);
+  const viewingDeck = new THREE.Mesh(new THREE.BoxGeometry(11, 0.12, 9), deckMat);
+  viewingDeck.position.y = 0.06;
   viewingDeck.receiveShadow = true;
   group.add(viewingDeck);
 
@@ -1154,6 +1167,11 @@ function populateVegetation(scene, colliders) {
     if (Math.abs(x) < 14 && Math.abs(z) < 14) continue;
     if (Math.abs(z - (-5)) < 6.5 && Math.abs(x) < 55) continue;
     if (Math.abs(x) < 6.5 && z > 0 && z < 60) continue;
+    // 避開三大景點核心區與入口通道
+    if (x > -48 && x < -22 && z > -26 && z < -4) continue; // 湯圍溝溫泉公園
+    if (x > 22 && x < 48 && z > -36 && z < -8) continue; // 礁溪協天廟
+    if (x > -18 && x < 18 && z > 34 && z < 70) continue; // 五峰旗風景區
+
     // 避開商圈建築區域
     if (Math.abs(z - 8) < 8 && Math.abs(x - 18) < 10) continue;
     if (Math.abs(z - 8) < 8 && Math.abs(x - (-18)) < 10) continue;

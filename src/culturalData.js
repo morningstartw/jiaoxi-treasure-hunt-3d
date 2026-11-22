@@ -16,7 +16,7 @@ export const SCENES_DATA = {
     name: '礁溪協天廟',
     engName: 'Jiaoxi Xietian Temple',
     desc: '創建於清嘉慶九年（1804年），北臺灣香火最鼎盛的關帝廟。清同治年間提督劉明燈奏請朝廷敕建。廟內供奉全臺罕見之「蠶絲關公」，每年春祭乞龜大典更是地方珍貴民俗。',
-    position: { x: 35, y: 0, z: -25 },
+    position: { x: 35, y: 0, z: -16 },
     realPhoto: 'images/xietian_temple.jpg',
     color: '#c0392b'
   },
@@ -25,7 +25,7 @@ export const SCENES_DATA = {
     name: '五峰旗風景特定區',
     engName: 'Wufengqi Waterfall Scenic Area',
     desc: '因後方五座山峰並列宛如五面三角旌旗而得名。全區擁有著名的三層瀑布，水氣充沛、負離子極高，茂密林蔭與地質斷層構成絕佳的自然生態教室。',
-    position: { x: 0, y: 0, z: 50 },
+    position: { x: 0, y: 0, z: 44 },
     realPhoto: 'images/wufengqi.jpg',
     color: '#27ae60'
   }

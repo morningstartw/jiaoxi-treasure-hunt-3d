@@ -42,6 +42,7 @@ const taskModal = document.getElementById('task-modal');
 const passportModal = document.getElementById('passport-modal');
 const chestModal = document.getElementById('chest-modal');
 const easterEggModal = document.getElementById('easter-egg-modal');
+const creditsModal = document.getElementById('credits-modal');
 
 // 全域調試掛載
 window.player = player;
@@ -49,6 +50,8 @@ window.__DEBUG_GAME__ = { player, scene, passport };
 
 // 介面按鈕
 const btnOpenPassport = document.getElementById('btn-open-passport');
+const btnOpenCredits = document.getElementById('btn-open-credits');
+const btnPassportViewCredits = document.getElementById('btn-passport-view-credits');
 const btnResetGame = document.getElementById('btn-reset-game');
 const btnToggleBgm = document.getElementById('btn-toggle-bgm');
 const btnToggleSfx = document.getElementById('btn-toggle-sfx');
@@ -187,6 +190,16 @@ function openTaskModal(task) {
 
   const taskPhoto = document.getElementById('task-modal-photo');
   taskPhoto.src = task.realPhoto;
+
+  const taskPhotoCaption = document.getElementById('task-modal-photo-caption');
+  if (taskPhotoCaption) {
+    taskPhotoCaption.textContent = task.photoCredit ? `📷 照片授權：${task.photoCredit}` : '📷 實景照片考證';
+  }
+
+  const taskSource = document.getElementById('task-modal-source');
+  if (taskSource) {
+    taskSource.textContent = task.culturalSource ? `🏛️ 文史考證來源：${task.culturalSource}` : '🏛️ 文史考證來源：宜蘭縣政府文化局 / 礁溪鄉公所';
+  }
 
   const promptText = document.getElementById('task-modal-prompt');
   promptText.textContent = task.prompt;
@@ -394,6 +407,19 @@ function closeAllModals() {
   passportModal.classList.add('hidden');
   chestModal.classList.add('hidden');
   if (easterEggModal) easterEggModal.classList.add('hidden');
+  if (creditsModal) creditsModal.classList.add('hidden');
+}
+
+// 開啟素材與資料來源彈窗
+function openCreditsModal() {
+  closeAllModals();
+  activeModal = 'credits';
+  if (creditsModal) {
+    creditsModal.classList.remove('hidden');
+    const modalBox = creditsModal.querySelector('.modal-box');
+    if (modalBox) modalBox.scrollTop = 0;
+  }
+  audio.playInteract();
 }
 
 // 重新遊玩：進度回到 0/5，角色重置至起點
@@ -429,6 +455,8 @@ container.addEventListener('click', (e) => {
 });
 btnOpenPassport.addEventListener('click', togglePassport);
 btnResetGame.addEventListener('click', resetGame);
+btnOpenCredits?.addEventListener('click', openCreditsModal);
+btnPassportViewCredits?.addEventListener('click', openCreditsModal);
 
 btnToggleBgm.addEventListener('click', () => {
   const isPlaying = audio.toggleBgm();

@@ -25,6 +25,7 @@
       <button id="btn-toggle-bgm" class="hud-btn" title="切換背景音樂">🎵 音樂：關</button>
       <button id="btn-toggle-sfx" class="hud-btn" title="切換音效">🔊 音效：開</button>
       <button id="btn-open-passport" class="hud-btn highlight-btn" title="查看護照 (按 P)">📖 尋寶護照 (P)</button>
+      <button id="btn-open-credits" class="hud-btn" title="查看素材與資料來源">📜 素材與來源</button>
       <button id="btn-reset-game" class="hud-btn reset-btn" title="重新遊玩">🔄 重新遊玩</button>
     </div>
   </header>
@@ -64,11 +65,12 @@
       </div>
 
       <div class="modal-body">
-        <!-- 實景照片展示區 -->
+        <!-- 實景照片展示區與授權來源標註 -->
         <div class="photo-container">
           <img id="task-modal-photo" src="" alt="礁溪實景照片" class="task-real-img" />
-          <div class="photo-caption">📷 礁溪實景照片考證</div>
+          <div id="task-modal-photo-caption" class="photo-caption">📷 實景照片考證</div>
         </div>
+        <div id="task-modal-source" class="source-credit-text">🏛️ 文史資料來源：礁溪鄉公所官方網站</div>
 
         <!-- 任務問題說明 -->
         <div class="prompt-text-box">
@@ -119,6 +121,7 @@
       </div>
 
       <div class="modal-footer">
+        <button id="btn-passport-view-credits" class="secondary-btn small-btn">📜 查看文化資料與素材授權明細</button>
         <button class="secondary-btn close-modal-btn">收起護照</button>
       </div>
     </div>
@@ -179,6 +182,97 @@
 
       <div class="modal-footer text-center">
         <button class="primary-btn close-modal-btn" style="background: linear-gradient(135deg, #f39c12, #d35400); font-size: 1.05rem; padding: 12px 32px;">收下開發者祝福與榮譽 (繼續探險)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模態框 E：文化資料考證與外部素材授權明細視窗 -->
+  <div id="credits-modal" class="modal-overlay hidden">
+    <div class="modal-box credits-card">
+      <button class="modal-close-x close-modal-btn">&times;</button>
+      <div class="modal-header">
+        <h2>📜 文化資料與外部素材授權來源</h2>
+        <div class="location-badge">學術考證 ＆ CC 著作權明細</div>
+      </div>
+
+      <div class="modal-body credits-body">
+        <div class="credits-intro-p">
+          本作品落實嚴謹文化考證與開源著作權規範，所有歷史、地理、信仰與農特產資料均有公開權威來源，外部素材均依循創用 CC（Creative Commons）條款合法引用並清楚標註創作者與出處：
+        </div>
+
+        <!-- 1. 文史考證來源 -->
+        <div class="credits-section">
+          <h3>🏛️ 1. 宜蘭礁溪文化與文史參考文獻</h3>
+          <ul class="credits-list">
+            <li><strong>宜蘭縣政府文化局</strong>：《宜蘭縣無形文化資產名錄・礁溪協天廟春祭乞龜大典》、《礁溪協天廟志（清嘉慶至同治敕建歷史）》</li>
+            <li><strong>宜蘭縣礁溪鄉公所</strong>：《礁溪鄉誌・觀光與溫泉篇》（湯圍溝自然湧泉、碳酸氫鈉泉質與美人湯成因）、《五峰旗風景特定區地質景觀與三層瀑布解說》</li>
+            <li><strong>宜蘭縣礁溪鄉農會</strong>：《礁溪溫泉農特產品專區》（溫泉四寶：水蕹菜/空心菜、溫泉番茄、美人腿茭白筍水耕栽植特性）</li>
+            <li><strong>交通部觀光署</strong>：東北角及宜蘭海岸國家風景區管理處官方導覽文獻</li>
+          </ul>
+        </div>
+
+        <!-- 2. 實景照片授權明細表 -->
+        <div class="credits-section">
+          <h3>📷 2. 外部實景照片與授權資訊表</h3>
+          <div class="credits-table-wrap">
+            <table class="credits-table">
+              <thead>
+                <tr>
+                  <th>素材檔案</th>
+                  <th>主題內容</th>
+                  <th>原作者 / 來源</th>
+                  <th>授權條款 (License)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>images/tangweigou.jpg</code></td>
+                  <td>湯圍溝溫泉公園景觀池</td>
+                  <td>Yu tptw / Wikimedia Commons</td>
+                  <td><span class="badge-cc">CC BY-SA 4.0</span></td>
+                </tr>
+                <tr>
+                  <td><code>images/xietian_temple.jpg</code></td>
+                  <td>礁溪協天廟主殿正貌</td>
+                  <td>Sheng-Hung Lin / Wikimedia Commons</td>
+                  <td><span class="badge-cc">CC BY-SA 4.0</span></td>
+                </tr>
+                <tr>
+                  <td><code>images/wufengqi.jpg</code></td>
+                  <td>宜蘭五峰旗瀑布三層奔騰</td>
+                  <td>Sheng-Hung Lin / Wikimedia Commons</td>
+                  <td><span class="badge-cc">CC BY-SA 4.0</span></td>
+                </tr>
+                <tr>
+                  <td><code>images/crops.jpg</code></td>
+                  <td>溫泉水蕹菜（空心菜）農產實物</td>
+                  <td>Arya kangkung / Wikimedia Commons</td>
+                  <td><span class="badge-cc">CC BY-SA 4.0</span></td>
+                </tr>
+                <tr>
+                  <td><code>images/turtle.jpg</code></td>
+                  <td>傳統春祭祈龜平安壽龜</td>
+                  <td>Bo-Chen Chen / Wikimedia Commons</td>
+                  <td><span class="badge-cc">CC BY-SA 4.0</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. 自主創作與程式碼模組 -->
+        <div class="credits-section">
+          <h3>🎨 3. 自主創作素材與技術框架</h3>
+          <ul class="credits-list">
+            <li><strong>文化印章與數位徽章</strong>：<code>stamp1~5.svg</code> 與 <code>badge.svg</code> 皆由本專案自主向量繪製生成（CC0 / Public Domain）。</li>
+            <li><strong>3D 圖形與物理運算</strong>：採用 Three.js (MIT License) 純前端網頁 3D 技術渲染，無依賴任何收費商業模型。</li>
+            <li><strong>空間立體音效與 BGM</strong>：採用 Web Audio API 振盪器純演算法即時程序化合成（MIT License），無未授權音訊取樣。</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn close-modal-btn">關閉返回遊戲</button>
       </div>
     </div>
   </div>

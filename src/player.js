@@ -25,7 +25,8 @@ export class PlayerController {
     // 第三人稱相機參數（初始相機位於玩家身後，朝向任務板正面）
     this.cameraYaw = Math.PI; // 水平旋轉
     this.cameraPitch = 0.35; // 垂直俯仰角 (rad)
-    this.cameraDistance = 8.5; // 縮放距離
+    this.cameraDistance = 8.5; // 目標縮放距離
+    this.currentCameraDist = 8.5; // 當前平滑防遮擋距離
     this.minDistance = 3.5;
     this.maxDistance = 22.0;
 
@@ -166,8 +167,8 @@ export class PlayerController {
   }
 
   // 實體碰撞檢測核心函數（測試指定座標 (x, z) 半徑 r 是否撞擊任何實體）
-  isColliding(x, z, r = 0.45) {
-    // 邊界防禦
+  isColliding(x, z, r = 0.52) {
+    // 邊界防禦（不可走出城鎮主地圖邊界）
     if (x < -92 || x > 92 || z < -92 || z > 92) return true;
 
     for (let i = 0; i < this.colliders.length; i++) {
@@ -308,17 +309,32 @@ export class PlayerController {
       this.isMoving = true;
       const speed = this.keys.shift ? this.runSpeed : this.walkSpeed;
 
-      // 分離軸滑行碰撞檢測（Separated Axis Sweep Collision）：
-      // 斜撞牆壁時沿著牆面流暢滑行，100% 杜絕穿透建築物！
-      const deltaX = moveDir.x * speed * delta;
-      const deltaZ = moveDir.z * speed * delta;
-      const playerRadius = 0.45;
+      // 連續微步碰撞檢測（Continuous Sub-stepping Collision）：
+      // 將每幀移動距離切分為小於 0.12m 的微步，徹底杜絕高速奔跑穿牆 (Tunneling)
+      const totalDist = speed * delta;
+      const subSteps = Math.max(1, Math.ceil(totalDist / 0.12));
+      const stepDelta = delta / subSteps;
+      const stepDeltaX = moveDir.x * speed * stepDelta;
+      const stepDeltaZ = moveDir.z * speed * stepDelta;
+      const playerRadius = 0.52;
 
-      if (!this.isColliding(this.position.x + deltaX, this.position.z, playerRadius)) {
-        this.position.x += deltaX;
-      }
-      if (!this.isColliding(this.position.x, this.position.z + deltaZ, playerRadius)) {
-        this.position.z += deltaZ;
+      for (let s = 0; s < subSteps; s++) {
+        const nextX = this.position.x + stepDeltaX;
+        const nextZ = this.position.z + stepDeltaZ;
+
+        // 優先嘗試全方向移動
+        if (!this.isColliding(nextX, nextZ, playerRadius)) {
+          this.position.x = nextX;
+          this.position.z = nextZ;
+        } else {
+          // 若遇障礙物，執行分離軸平滑滑行（沿牆面滑動，不卡頓且不穿模）
+          if (!this.isColliding(nextX, this.position.z, playerRadius)) {
+            this.position.x = nextX;
+          }
+          if (!this.isColliding(this.position.x, nextZ, playerRadius)) {
+            this.position.z = nextZ;
+          }
+        }
       }
 
       // 平滑轉向
@@ -352,24 +368,29 @@ export class PlayerController {
   }
 
   updateCamera(delta) {
-    // 智慧相機防穿牆：若相機與玩家視線被建築物阻擋，自動將相機拉近至障礙物表面前方，絕不穿透建築內部！
-    let safeDistance = this.cameraDistance;
-    for (let step = 1; step <= 8; step++) {
-      const testDist = this.cameraDistance * (1 - (step - 1) * 0.1);
-      if (testDist < this.minDistance) break;
-      const testOffX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * testDist;
-      const testOffZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * testDist;
-      const testCamX = this.position.x - testOffX;
-      const testCamZ = this.position.z - testOffZ;
-      if (!this.isColliding(testCamX, testCamZ, 0.35)) {
-        safeDistance = testDist;
+    // 智慧相機視線光線投射檢測（Raycast Occlusion Prevention）：
+    // 從玩家向相機發射射線，若視線被任何實體建築或岩壁遮擋，立即將相機拉近至障礙物前方，杜絕相機穿入建築內部或被遮擋
+    const fullOffsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
+    const fullOffsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
+
+    let safeRatio = 1.0;
+    const samples = 25;
+    for (let i = 2; i <= samples; i++) {
+      const t = i / samples;
+      const testX = this.position.x - fullOffsetX * t;
+      const testZ = this.position.z - fullOffsetZ * t;
+      if (this.isColliding(testX, testZ, 0.45)) {
+        safeRatio = Math.max(0.18, (i - 2) / samples);
         break;
       }
     }
 
-    const offsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * safeDistance;
-    const offsetY = Math.sin(this.cameraPitch) * safeDistance;
-    const offsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * safeDistance;
+    const targetDist = this.cameraDistance * safeRatio;
+    this.currentCameraDist = THREE.MathUtils.lerp(this.currentCameraDist, targetDist, 0.25);
+
+    const offsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * this.currentCameraDist;
+    const offsetY = Math.sin(this.cameraPitch) * this.currentCameraDist;
+    const offsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * this.currentCameraDist;
 
     const targetCamPos = new THREE.Vector3(
       this.position.x - offsetX,
@@ -377,8 +398,8 @@ export class PlayerController {
       this.position.z - offsetZ
     );
 
-    this.camera.position.lerp(targetCamPos, 0.2);
-    this.camera.lookAt(this.position.x, this.position.y + 1.5, this.position.z);
+    this.camera.position.lerp(targetCamPos, 0.25);
+    this.camera.lookAt(this.position.x, this.position.y + 1.4, this.position.z);
   }
 
   resetToSpawn() {

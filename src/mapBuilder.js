@@ -209,8 +209,8 @@ export function buildJiaoxiWorld(scene) {
   createSignpost('🌲 五峰旗風景特定區 🌲', 0, 0, 36, 0);
   buildWufengqiFalls(scene, animatedUpdaters, createInteractiveRing);
 
-  // 散佈植被
-  populateVegetation(scene);
+  // 散佈植被（樹木均具備實體樹幹碰撞，不可穿越）
+  populateVegetation(scene, colliders);
 
   return {
     interactiveObjects,
@@ -377,7 +377,7 @@ function buildJiaoxiTownBuildings(scene, colliders) {
   colliders.push({ type: 'box', minX: 7.9, maxX: 9.1, minZ: -2.0, maxZ: -1.0 });
 }
 
-// 註冊三大景點與中央廣場的實體障礙碰撞體
+// 註冊三大景點與中央廣場的實體障礙碰撞體（全地圖零穿模體系）
 function registerWorldColliders(colliders) {
   // 1. 中央廣場任務佈告板
   colliders.push({ type: 'box', minX: -2.5, maxX: 2.5, minZ: -3.4, maxZ: -2.5 });
@@ -385,7 +385,33 @@ function registerWorldColliders(colliders) {
   // 2. 文化寶箱
   colliders.push({ type: 'box', minX: 3.2, maxX: 4.8, minZ: -0.6, maxZ: 0.6 });
 
-  // 3. 協天廟大殿主體（阻擋穿入紅牆）
+  // 3. 街區木長椅 (4張)
+  colliders.push({ type: 'box', minX: -7.2, maxX: -4.8, minZ: -2.3, maxZ: -1.3 });
+  colliders.push({ type: 'box', minX: 4.8, maxX: 7.2, minZ: -2.3, maxZ: -1.3 });
+  colliders.push({ type: 'box', minX: -7.2, maxX: -4.8, minZ: -8.7, maxZ: -7.7 });
+  colliders.push({ type: 'box', minX: 4.8, maxX: 7.2, minZ: -8.7, maxZ: -7.7 });
+
+  // 4. 三大景區大型雙面立牌看板
+  // 湯圍溝入口看板 (-35, -5)
+  colliders.push({ type: 'box', minX: -37.2, maxX: -32.8, minZ: -5.6, maxZ: -4.4 });
+  // 協天廟入口看板 (35, -15)
+  colliders.push({ type: 'box', minX: 32.8, maxX: 37.2, minZ: -15.6, maxZ: -14.4 });
+  // 五峰旗入口看板 (0, 36)
+  colliders.push({ type: 'box', minX: -2.2, maxX: 2.2, minZ: 35.4, maxZ: 36.6 });
+
+  // 5. 五大任務展台與實體道具
+  // 任務一：湯圍泉質告示牌 (-39, -15)
+  colliders.push({ type: 'box', minX: -40.0, maxX: -38.0, minZ: -15.5, maxZ: -14.5 });
+  // 任務二：溫泉農產蔬果籃 (-31, -15)
+  colliders.push({ type: 'circle', x: -31.0, z: -15.0, radius: 0.85 });
+  // 任務三：蠶絲神像展架 (30, -20)
+  colliders.push({ type: 'box', minX: 29.0, maxX: 31.0, minZ: -20.5, maxZ: -19.5 });
+  // 任務四：春祭乞龜祝壽供桌 (40, -20)
+  colliders.push({ type: 'box', minX: 38.8, maxX: 41.2, minZ: -20.8, maxZ: -19.2 });
+  // 任務五：觀瀑明信片展台 (0, 44)
+  colliders.push({ type: 'box', minX: -1.0, maxX: 1.0, minZ: 43.5, maxZ: 44.5 });
+
+  // 6. 協天廟大殿主體（阻擋穿入紅牆）
   colliders.push({ type: 'box', minX: 25.5, maxX: 44.5, minZ: -33.5, maxZ: -19.0 });
   // 協天廟石獅子一對
   colliders.push({ type: 'box', minX: 29.3, maxX: 30.7, minZ: -17.2, maxZ: -15.8 });
@@ -398,18 +424,40 @@ function registerWorldColliders(colliders) {
   colliders.push({ type: 'circle', x: 36.8, z: -11.5, radius: 0.4 });
   colliders.push({ type: 'circle', x: 39.5, z: -11.5, radius: 0.4 });
 
-  // 4. 湯圍溝泡腳池（石砌凸出基台，阻擋踩入池中穿模）
+  // 7. 湯圍溝泡腳池（石砌凸出基台，阻擋踩入池中穿模）
   colliders.push({ type: 'box', minX: -40.2, maxX: -29.8, minZ: -18.4, maxZ: -11.6 });
   // 湯圍溝四根木柱
   colliders.push({ type: 'circle', x: -43.0, z: -21.0, radius: 0.35 });
   colliders.push({ type: 'circle', x: -27.0, z: -21.0, radius: 0.35 });
   colliders.push({ type: 'circle', x: -43.0, z: -9.0, radius: 0.35 });
   colliders.push({ type: 'circle', x: -27.0, z: -9.0, radius: 0.35 });
+  // 湯圍溝木棧道南北護欄
+  colliders.push({ type: 'box', minX: -45.0, maxX: -25.0, minZ: -23.2, maxZ: -22.4 });
+  colliders.push({ type: 'box', minX: -45.0, maxX: -25.0, minZ: -7.6, maxZ: -6.8 });
+  // 湯圍溝石燈籠
+  colliders.push({ type: 'circle', x: -43.5, z: -8.5, radius: 0.5 });
+  colliders.push({ type: 'circle', x: -26.5, z: -8.5, radius: 0.5 });
 
-  // 5. 五峰旗後方巨型斷崖山岩（阻擋穿過岩壁掉進山體）
+  // 8. 五峰旗後方巨型斷崖山岩（阻擋穿過岩壁掉進山體）
   colliders.push({ type: 'box', minX: -26.0, maxX: 26.0, minZ: 53.0, maxZ: 85.0 });
   // 五峰旗瀑布深潭
   colliders.push({ type: 'circle', x: 0, z: 54.0, radius: 8.6 });
+  // 五峰旗觀瀑涼亭立柱
+  colliders.push({ type: 'circle', x: -4.5, z: 41.0, radius: 0.4 });
+  colliders.push({ type: 'circle', x: 4.5, z: 41.0, radius: 0.4 });
+  colliders.push({ type: 'circle', x: -4.5, z: 48.0, radius: 0.4 });
+  colliders.push({ type: 'circle', x: 4.5, z: 48.0, radius: 0.4 });
+
+  // 9. 中央步道兩側日式石燈籠 (8座)
+  const lanternPoints = [
+    [-4.0, 12], [4.0, 12],
+    [-4.0, 24], [4.0, 24],
+    [-4.0, 34], [4.0, 34],
+    [-4.0, 44], [4.0, 44]
+  ];
+  lanternPoints.forEach(([lx, lz]) => {
+    colliders.push({ type: 'circle', x: lx, z: lz, radius: 0.45 });
+  });
 }
 
 // 溫泉度假飯店大樓（多層、景觀窗、頂樓招牌）
@@ -1087,14 +1135,21 @@ function createTurtleAltarObject(scene, x, y, z) {
   scene.add(group);
 }
 
-function populateVegetation(scene) {
+function populateVegetation(scene, colliders) {
   const trunkMat = new THREE.MeshLambertMaterial({ color: 0x4e342e });
   const foliageMat1 = new THREE.MeshLambertMaterial({ color: 0x2e7d32 });
   const foliageMat2 = new THREE.MeshLambertMaterial({ color: 0x388e3c });
 
+  // 確定性偽隨機數生成器，確保每次生成的樹木與碰撞體精準一致
+  let seed = 42;
+  function pseudoRandom() {
+    seed = (seed * 9301 + 49297) % 233280;
+    return seed / 233280;
+  }
+
   for (let i = 0; i < 75; i++) {
-    const x = (Math.random() - 0.5) * 190;
-    const z = (Math.random() - 0.5) * 190;
+    const x = (pseudoRandom() - 0.5) * 190;
+    const z = (pseudoRandom() - 0.5) * 190;
 
     if (Math.abs(x) < 14 && Math.abs(z) < 14) continue;
     if (Math.abs(z - (-5)) < 6.5 && Math.abs(x) < 55) continue;
@@ -1112,15 +1167,20 @@ function populateVegetation(scene) {
     trunk.position.y = 1.25;
     tree.add(trunk);
 
-    const foliageHeight = 3.5 + Math.random() * 2;
+    const foliageHeight = 3.5 + pseudoRandom() * 2;
     const foliage = new THREE.Mesh(
-      new THREE.ConeGeometry(1.8 + Math.random() * 0.6, foliageHeight, 6),
-      Math.random() > 0.5 ? foliageMat1 : foliageMat2
+      new THREE.ConeGeometry(1.8 + pseudoRandom() * 0.6, foliageHeight, 6),
+      pseudoRandom() > 0.5 ? foliageMat1 : foliageMat2
     );
     foliage.position.y = 2.5 + foliageHeight / 2;
     foliage.castShadow = true;
     tree.add(foliage);
 
     scene.add(tree);
+
+    // 註冊樹幹實體碰撞圓柱體（半徑 0.45m，嚴防角色穿過樹木）
+    if (colliders) {
+      colliders.push({ type: 'circle', x, z, radius: 0.45 });
+    }
   }
 }

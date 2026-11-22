@@ -106,19 +106,16 @@ export function buildJiaoxiWorld(scene) {
 
     const texture = new THREE.CanvasTexture(canvas);
     const boardMat = new THREE.MeshBasicMaterial({ map: texture });
+    
+    // 正面看板（朝向 +Z）
     const boardFront = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.1), boardMat);
     boardFront.position.set(0, 3.1, 0.08);
     group.add(boardFront);
 
-    const backCanvas = document.createElement('canvas');
-    backCanvas.width = 128;
-    backCanvas.height = 64;
-    const bctx = backCanvas.getContext('2d');
-    bctx.fillStyle = '#4e342e';
-    bctx.fillRect(0, 0, 128, 64);
-    const backTex = new THREE.CanvasTexture(backCanvas);
-    const boardBack = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.1), new THREE.MeshBasicMaterial({ map: backTex }));
+    // 背面看板（朝向 -Z，透過 scale.x = -1 修正 180 度翻轉造成的水平鏡像反字，雙面皆為正向左至右閱讀）
+    const boardBack = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 1.1), boardMat);
     boardBack.rotation.y = Math.PI;
+    boardBack.scale.x = -1;
     boardBack.position.set(0, 3.1, -0.08);
     group.add(boardBack);
 
@@ -195,19 +192,19 @@ export function buildJiaoxiWorld(scene) {
   // ==========================================
   // A. 中央起點廣場：旅人任務板與文化寶箱
   // ==========================================
-  createSignpost('旅人起點・任務佈告板', -6, 0, 1.5, Math.PI);
+  createSignpost('旅人起點・任務佈告板', -6, 0, 1.5, -0.3);
   createCentralPlaza(scene, animatedUpdaters, createInteractiveRing);
 
   // ==========================================
   // B. 景點一：湯圍溝溫泉公園 (-35, 0, -15)
   // ==========================================
-  createSignpost('♨ 湯圍溝溫泉公園 ♨', -35, 0, -5, Math.PI);
+  createSignpost('♨ 湯圍溝溫泉公園 ♨', -35, 0, -5, Math.PI / 2);
   buildTangweigouPark(scene, animatedUpdaters, createInteractiveRing);
 
   // ==========================================
   // C. 景點二：礁溪協天廟 (35, 0, -25)
   // ==========================================
-  createSignpost('⛩ 礁溪協天廟 ⛩', 35, 0, -15, Math.PI);
+  createSignpost('⛩ 礁溪協天廟 ⛩', 35, 0, -15, -Math.PI / 2);
   buildXietianTemple(scene, animatedUpdaters, createInteractiveRing);
 
   // ==========================================
@@ -606,9 +603,17 @@ function createHotelBuilding(scene, x, y, z, hotelName, wallColor) {
   sctx.fillText(hotelName, 256, 48);
 
   const signTex = new THREE.CanvasTexture(signCanvas);
-  const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.2), new THREE.MeshBasicMaterial({ map: signTex }));
-  signMesh.position.set(0, 15.2, 5.06);
-  group.add(signMesh);
+  // 南側景觀面招牌
+  const signMeshSouth = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.2), new THREE.MeshBasicMaterial({ map: signTex }));
+  signMeshSouth.position.set(0, 15.2, 5.06);
+  group.add(signMeshSouth);
+
+  // 北側主要街道面招牌（面向中央大道，修正鏡像）
+  const signMeshNorth = new THREE.Mesh(new THREE.PlaneGeometry(12, 2.2), new THREE.MeshBasicMaterial({ map: signTex }));
+  signMeshNorth.position.set(0, 15.2, -5.06);
+  signMeshNorth.rotation.y = Math.PI;
+  signMeshNorth.scale.x = -1;
+  group.add(signMeshNorth);
 
   scene.add(group);
 }
@@ -761,9 +766,17 @@ function createCentralPlaza(scene, animatedUpdaters, createRing) {
   ctx.fillText('5. 五峰旗山區：觀瀑明信片展架（三層飛瀑）', 40, 230);
 
   const texture = new THREE.CanvasTexture(canvas);
+  // 正面任務板（面向南方起點）
   const poster = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.9), new THREE.MeshBasicMaterial({ map: texture }));
   poster.position.set(0, 2.4, 0.12);
   boardGroup.add(poster);
+
+  // 背面任務板（面向北方步道，修正鏡像）
+  const posterBack = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.9), new THREE.MeshBasicMaterial({ map: texture }));
+  posterBack.position.set(0, 2.4, -0.12);
+  posterBack.rotation.y = Math.PI;
+  posterBack.scale.x = -1;
+  boardGroup.add(posterBack);
   scene.add(boardGroup);
 
   const chestGroup = new THREE.Group();
@@ -1058,9 +1071,17 @@ function createTemplePaifang(parent, x, y, z) {
   pctx.fillText('敕建協天廟', 128, 32);
 
   const plaqueTex = new THREE.CanvasTexture(plaqueCanvas);
-  const plaque = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: plaqueTex, side: THREE.DoubleSide }));
-  plaque.position.set(0, 4.4, 0.22);
-  paifang.add(plaque);
+  // 正面匾額（朝向牌樓迎賓面）
+  const plaqueFront = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: plaqueTex }));
+  plaqueFront.position.set(0, 4.4, 0.22);
+  paifang.add(plaqueFront);
+
+  // 背面匾額（朝向廟埕面，修正水平鏡像反字，雙面皆為正向左至右閱讀）
+  const plaqueBack = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), new THREE.MeshBasicMaterial({ map: plaqueTex }));
+  plaqueBack.position.set(0, 4.4, -0.22);
+  plaqueBack.rotation.y = Math.PI;
+  plaqueBack.scale.x = -1;
+  paifang.add(plaqueBack);
 
   const paifangRoof = new THREE.Mesh(new THREE.BoxGeometry(11.5, 0.7, 1.2), goldMat);
   paifangRoof.position.set(0, 5.8, 0);
@@ -1335,9 +1356,40 @@ function createSignBoardObject(scene, x, y, z, text) {
   post.position.y = 1.1;
   group.add(post);
 
-  const board = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 0.1), new THREE.MeshLambertMaterial({ color: 0xd7ccc8 }));
+  const board = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.0, 0.1), new THREE.MeshLambertMaterial({ color: 0x3e2723 }));
   board.position.set(0, 1.8, 0);
   group.add(board);
+
+  // 繪製線索告示看板（正面與背面皆為正向左至右，無鏡像反字）
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#2c3e50';
+  ctx.fillRect(0, 0, 256, 128);
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 6;
+  ctx.strokeRect(4, 4, 248, 120);
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = 'bold 22px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 128, 64);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const textMat = new THREE.MeshBasicMaterial({ map: tex });
+
+  // 正面
+  const frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 0.88), textMat);
+  frontMesh.position.set(0, 1.8, 0.055);
+  group.add(frontMesh);
+
+  // 背面（修正 180 度翻轉鏡像，雙面皆為正向）
+  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.48, 0.88), textMat);
+  backMesh.position.set(0, 1.8, -0.055);
+  backMesh.rotation.y = Math.PI;
+  backMesh.scale.x = -1;
+  group.add(backMesh);
 
   scene.add(group);
 }

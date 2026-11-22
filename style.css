@@ -788,3 +788,137 @@ kbd {
     padding: 10px 20px;
   }
 }
+
+/* 隱藏彩蛋：金色巨大關公像與開發者秘密留言紙條風格 */
+.easter-egg-card {
+  max-width: 680px;
+  background: #fbf8f1;
+  border: 4px solid #f39c12;
+  box-shadow: 0 16px 48px rgba(243, 156, 18, 0.45), 0 0 24px rgba(255, 215, 0, 0.35);
+}
+
+.easter-egg-header {
+  background: linear-gradient(135deg, #b71540, #c0392b 60%, #e67e22);
+  color: #ffffff;
+  padding: 22px 28px;
+  text-align: center;
+  border-bottom: 3px solid #ffd700;
+}
+
+.egg-icon-anim {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+  animation: bounceSlow 2s infinite ease-in-out;
+}
+
+@keyframes bounceSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.easter-egg-header h2 {
+  font-size: 1.35rem;
+  color: #fff9e6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.easter-egg-subtitle {
+  font-size: 0.85rem;
+  color: #ffd700;
+  margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.easter-egg-scroll {
+  padding: 20px 24px;
+}
+
+.scroll-inner-paper {
+  background: #ffffff;
+  border: 2px dashed #e67e22;
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: inset 0 0 16px rgba(230, 126, 34, 0.08);
+}
+
+.guanyu-avatar-banner {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.golden-deity-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #ffd700, #f39c12);
+  color: #5d4037;
+  font-weight: bold;
+  font-size: 0.88rem;
+  padding: 6px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
+}
+
+.scroll-salutation {
+  color: #b71540;
+  font-size: 1.12rem;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.scroll-para {
+  color: #2c3e50;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.developer-honor-box {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #fff9e6, #fff3cd);
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.25);
+}
+
+.honor-trophy {
+  font-size: 2.4rem;
+}
+
+.honor-info h4 {
+  font-size: 0.85rem;
+  color: #b71540;
+  letter-spacing: 0.5px;
+}
+
+.honor-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #d35400;
+  margin: 2px 0 4px 0;
+}
+
+.honor-info p {
+  font-size: 0.84rem;
+  color: #57606f;
+  margin: 0;
+}
+
+.scroll-closing {
+  color: #4a4a4a;
+  font-size: 0.93rem;
+  line-height: 1.7;
+  margin-top: 14px;
+  font-style: italic;
+}
+
+.dev-sign {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-weight: bold;
+  color: #b71540;
+  font-style: normal;
+}

@@ -209,6 +209,11 @@ export function buildJiaoxiWorld(scene) {
   createSignpost('🌲 五峰旗風景特定區 🌲', 0, 0, 36, 0);
   buildWufengqiFalls(scene, animatedUpdaters, createInteractiveRing);
 
+  // ==========================================
+  // E. 隱藏終極彩蛋：金色巨大關公像與開發者秘密留言紙條 (14.0, 0, -58.0)
+  // ==========================================
+  buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createInteractiveRing, colliders);
+
   // 散佈植被（樹木均具備實體樹幹碰撞，不可穿越）
   populateVegetation(scene, colliders);
 
@@ -1200,5 +1205,194 @@ function populateVegetation(scene, colliders) {
     if (colliders) {
       colliders.push({ type: 'circle', x, z, radius: 0.45 });
     }
+  }
+}
+
+// ==============================================================
+// 隱藏終極彩蛋：金色巨大關公像與開發者秘密留言紙條 (14.0, 0, -58.0)
+// ==============================================================
+function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, colliders) {
+  const eggGroup = new THREE.Group();
+  eggGroup.position.set(14.0, 0, -61.0);
+
+  // 金色反射高質感金屬材質
+  const goldMat = new THREE.MeshStandardMaterial({
+    color: 0xffd700,
+    metalness: 0.88,
+    roughness: 0.22,
+    emissive: 0xb7791f,
+    emissiveIntensity: 0.15
+  });
+
+  const darkGoldMat = new THREE.MeshStandardMaterial({
+    color: 0xd4af37,
+    metalness: 0.9,
+    roughness: 0.28
+  });
+
+  const capeMat = new THREE.MeshLambertMaterial({ color: 0x900c3f });
+  const stoneMat = new THREE.MeshLambertMaterial({ color: 0x2c3437 });
+  const bladeMat = new THREE.MeshStandardMaterial({ color: 0xe0f7fa, metalness: 0.95, roughness: 0.1 });
+
+  // 1. 雙層金邊蓮花石台基座
+  const plinthBase = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.6, 4.4), stoneMat);
+  plinthBase.position.y = 0.3;
+  plinthBase.receiveShadow = true;
+  plinthBase.castShadow = true;
+  eggGroup.add(plinthBase);
+
+  const plinthTop = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.1, 0.4, 16), darkGoldMat);
+  plinthTop.position.y = 0.7;
+  plinthTop.castShadow = true;
+  eggGroup.add(plinthTop);
+
+  // 2. 巨大關公像主體 (高達 6.5 公尺)
+  // 鎧甲身軀
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 1.15, 2.6, 12), goldMat);
+  body.position.y = 2.1;
+  body.castShadow = true;
+  eggGroup.add(body);
+
+  // 雙肩龍首護肩
+  [-0.95, 0.95].forEach(sx => {
+    const pauldron = new THREE.Mesh(new THREE.SphereGeometry(0.48, 12, 12), darkGoldMat);
+    pauldron.position.set(sx, 3.1, 0);
+    pauldron.castShadow = true;
+    eggGroup.add(pauldron);
+  });
+
+  // 頭部與面容
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.44, 16, 16), goldMat);
+  head.position.y = 3.8;
+  head.castShadow = true;
+  eggGroup.add(head);
+
+  // 美髯公飄逸長鬚
+  const beardUpper = new THREE.Mesh(new THREE.ConeGeometry(0.24, 1.4, 8), darkGoldMat);
+  beardUpper.rotation.x = Math.PI;
+  beardUpper.position.set(0, 2.8, 0.4);
+  eggGroup.add(beardUpper);
+
+  const beardLower = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.9, 8), darkGoldMat);
+  beardLower.rotation.x = Math.PI;
+  beardLower.position.set(0, 2.0, 0.44);
+  eggGroup.add(beardLower);
+
+  // 關帝武冠神盔 (Crown)
+  const helmet = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.42, 0.75, 12), darkGoldMat);
+  helmet.position.y = 4.35;
+  helmet.castShadow = true;
+  eggGroup.add(helmet);
+
+  const crest = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.55, 6), goldMat);
+  crest.position.y = 4.9;
+  eggGroup.add(crest);
+
+  // 背後大紅色武將披風
+  const cape = new THREE.Mesh(new THREE.BoxGeometry(2.1, 3.2, 0.18), capeMat);
+  cape.position.set(0, 2.4, -0.65);
+  cape.castShadow = true;
+  eggGroup.add(cape);
+
+  // 3. 青龍偃月刀 (長達 7.5 公尺神兵利器)
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 7.2, 8), darkGoldMat);
+  pole.position.set(1.4, 3.6, 0.35);
+  pole.rotation.z = -0.12;
+  pole.castShadow = true;
+  eggGroup.add(pole);
+
+  const dragonMouth = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 10), goldMat);
+  dragonMouth.position.set(1.5, 6.4, 0.35);
+  eggGroup.add(dragonMouth);
+
+  const crescentBlade = new THREE.Mesh(new THREE.BoxGeometry(0.75, 2.4, 0.08), bladeMat);
+  crescentBlade.position.set(1.7, 7.3, 0.35);
+  crescentBlade.rotation.z = 0.08;
+  crescentBlade.castShadow = true;
+  eggGroup.add(crescentBlade);
+
+  // 4. 金光神聖粒子特效 (金色光點冉冉升騰)
+  const auraGeo = new THREE.BufferGeometry();
+  const auraCount = 45;
+  const auraPos = new Float32Array(auraCount * 3);
+  for (let i = 0; i < auraCount; i++) {
+    auraPos[i * 3] = (Math.random() - 0.5) * 5.0;
+    auraPos[i * 3 + 1] = Math.random() * 6.5 + 0.5;
+    auraPos[i * 3 + 2] = (Math.random() - 0.5) * 5.0;
+  }
+  auraGeo.setAttribute('position', new THREE.BufferAttribute(auraPos, 3));
+  const auraMat = new THREE.PointsMaterial({
+    color: 0xfff275,
+    size: 0.32,
+    transparent: true,
+    opacity: 0.75
+  });
+  const auraParticles = new THREE.Points(auraGeo, auraMat);
+  eggGroup.add(auraParticles);
+
+  scene.add(eggGroup);
+
+  // 5. 開發者秘密留言紙條石台 (立於 14.0, 0, -58.8)
+  const noteGroup = new THREE.Group();
+  noteGroup.position.set(14.0, 0, -58.8);
+
+  const notePedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.55, 0.9, 12), stoneMat);
+  notePedestal.position.y = 0.45;
+  notePedestal.castShadow = true;
+  noteGroup.add(notePedestal);
+
+  const scrollRoll1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), darkGoldMat);
+  scrollRoll1.rotation.z = Math.PI / 2;
+  scrollRoll1.position.set(0, 0.98, -0.22);
+  noteGroup.add(scrollRoll1);
+
+  const scrollRoll2 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.75, 8), darkGoldMat);
+  scrollRoll2.rotation.z = Math.PI / 2;
+  scrollRoll2.position.set(0, 0.98, 0.22);
+  noteGroup.add(scrollRoll2);
+
+  // 展開的金色信紙與紅色火漆封印
+  const paperMat = new THREE.MeshBasicMaterial({ color: 0xfff8dc });
+  const paper = new THREE.Mesh(new THREE.PlaneGeometry(0.68, 0.4), paperMat);
+  paper.rotation.x = -Math.PI / 2;
+  paper.position.set(0, 0.96, 0);
+  noteGroup.add(paper);
+
+  const sealMat = new THREE.MeshBasicMaterial({ color: 0xc0392b });
+  const seal = new THREE.Mesh(new THREE.CircleGeometry(0.08, 12), sealMat);
+  seal.rotation.x = -Math.PI / 2;
+  seal.position.set(0, 0.97, 0);
+  noteGroup.add(seal);
+
+  // 柔和金光光暈
+  const noteLight = new THREE.PointLight(0xffd700, 2.2, 9);
+  noteLight.position.set(0, 1.4, 0);
+  noteGroup.add(noteLight);
+
+  scene.add(noteGroup);
+
+  // 6. 動態粒子與金光更新
+  animatedUpdaters.push((delta, time) => {
+    const arr = auraGeo.attributes.position.array;
+    for (let i = 0; i < auraCount; i++) {
+      arr[i * 3 + 1] += delta * 0.9;
+      arr[i * 3] += Math.sin(time * 2 + i) * 0.012;
+      if (arr[i * 3 + 1] > 7.5) {
+        arr[i * 3 + 1] = 0.5;
+      }
+    }
+    auraGeo.attributes.position.needsUpdate = true;
+    noteLight.intensity = 2.0 + Math.sin(time * 3.5) * 0.4;
+  });
+
+  // 7. 註冊互動光圈（剛好涵蓋玩家站立的 14.0, -58.0 核心區域，半徑 3.2m）
+  createRing(14.0, -58.0, '【隱藏彩蛋】金色巨大關公像・開發者秘密留言', 'easter_egg', 'easter_egg_guanyu');
+
+  // 8. 註冊實體防穿模碰撞體
+  if (colliders) {
+    // 關公石台座碰撞體
+    colliders.push({ type: 'box', minX: 11.8, maxX: 16.2, minZ: -63.2, maxZ: -59.5 });
+    // 留言石台圓柱碰撞體
+    colliders.push({ type: 'circle', x: 14.0, z: -58.8, radius: 0.55 });
   }
 }

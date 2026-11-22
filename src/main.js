@@ -40,6 +40,11 @@ const hudHintText = document.getElementById('hud-hint-text');
 const taskModal = document.getElementById('task-modal');
 const passportModal = document.getElementById('passport-modal');
 const chestModal = document.getElementById('chest-modal');
+const easterEggModal = document.getElementById('easter-egg-modal');
+
+// 全域調試掛載
+window.player = player;
+window.__DEBUG_GAME__ = { player, scene, passport };
 
 // 介面按鈕
 const btnOpenPassport = document.getElementById('btn-open-passport');
@@ -145,7 +150,20 @@ function triggerCurrentInteraction() {
     }
   } else if (currentNearbyObject.type === 'chest') {
     openChestModal();
+  } else if (currentNearbyObject.type === 'easter_egg') {
+    openEasterEggModal();
   }
+}
+
+// 開啟隱藏彩蛋彈窗
+function openEasterEggModal() {
+  activeModal = 'easter_egg';
+  if (easterEggModal) {
+    easterEggModal.classList.remove('hidden');
+    const modalBox = easterEggModal.querySelector('.modal-box');
+    if (modalBox) modalBox.scrollTop = 0;
+  }
+  audio.playSuccess();
 }
 
 // 開啟線索任務彈窗
@@ -319,6 +337,7 @@ function closeAllModals() {
   taskModal.classList.add('hidden');
   passportModal.classList.add('hidden');
   chestModal.classList.add('hidden');
+  if (easterEggModal) easterEggModal.classList.add('hidden');
 }
 
 // 重新遊玩：進度回到 0/5，角色重置至起點

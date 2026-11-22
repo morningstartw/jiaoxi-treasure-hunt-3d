@@ -188,6 +188,28 @@ class AudioManager {
     });
   }
 
+  // 趣味彩蛋鴨叫聲「呱呱～」
+  playQuack() {
+    this.init();
+    if (this.isMuted || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [0, 0.16].forEach((delay, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      const startFreq = idx === 0 ? 320 : 380;
+      const endFreq = idx === 0 ? 180 : 210;
+      osc.frequency.setValueAtTime(startFreq, now + delay);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + delay + 0.14);
+      gain.gain.setValueAtTime(0.25, now + delay);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.15);
+    });
+  }
+
   toggleBgm() {
     this.init();
     if (this.bgmPlaying) {

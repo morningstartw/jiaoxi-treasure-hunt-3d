@@ -11,7 +11,9 @@ import {
 } from './textures.js';
 
 /**
- * 建立真正的正向雙面看板網格群組（前後兩面皆清晰可見、正向閱讀無鏡像反字、無負縮放與破圖剔除問題）
+ * 建立真正的正向雙面看板網格群組
+ * 正面與背面皆共用標準正向貼圖，透過幾何體 UV 水平反轉 (u = 1 - u)
+ * 完美達成雙面皆為正向左至右閱讀、字體完全無鏡像、模型正常法向量、零剔除破圖！
  * @param {number} width 看板 3D 寬度
  * @param {number} height 看板 3D 高度
  * @param {number} canvasWidth Canvas 像素寬度
@@ -23,34 +25,31 @@ import {
 function createDoubleSidedBoardMesh(width, height, canvasWidth, canvasHeight, drawFn, zOffset = 0.06) {
   const group = new THREE.Group();
 
-  // 1. 正面畫布與網格
-  const frontCanvas = document.createElement('canvas');
-  frontCanvas.width = canvasWidth;
-  frontCanvas.height = canvasHeight;
-  const fctx = frontCanvas.getContext('2d');
-  drawFn(fctx, canvasWidth, canvasHeight);
+  // 1. 繪製標準正向畫布
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const ctx = canvas.getContext('2d');
+  drawFn(ctx, canvasWidth, canvasHeight);
 
-  const frontTex = new THREE.CanvasTexture(frontCanvas);
-  const frontMat = new THREE.MeshBasicMaterial({ map: frontTex, side: THREE.DoubleSide });
-  const frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), frontMat);
+  const texture = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+
+  // 2. 正面網格（朝向 +Z，正常 UV）
+  const frontGeo = new THREE.PlaneGeometry(width, height);
+  const frontMesh = new THREE.Mesh(frontGeo, mat);
   frontMesh.position.set(0, 0, zOffset);
   group.add(frontMesh);
 
-  // 2. 背面畫布與網格：
-  // 透過 2D 畫布水平鏡像翻轉 (translate + scale(-1, 1))，
-  // 配合 3D 網格旋轉 180 度 (rotation.y = Math.PI)，
-  // 兩者恰好抵消，達成前後雙面皆為正向左至右閱讀，且保持 scale(1,1,1) 正確法向量與雙面渲染。
-  const backCanvas = document.createElement('canvas');
-  backCanvas.width = canvasWidth;
-  backCanvas.height = canvasHeight;
-  const bctx = backCanvas.getContext('2d');
-  bctx.translate(canvasWidth, 0);
-  bctx.scale(-1, 1);
-  drawFn(bctx, canvasWidth, canvasHeight);
+  // 3. 背面網格（朝向 -Z，旋轉 180 度，透過 UV 反轉抵消 180 度剛體旋轉，無鏡像、文字絕對正向）
+  const backGeo = new THREE.PlaneGeometry(width, height);
+  const uvs = backGeo.attributes.uv;
+  for (let i = 0; i < uvs.count; i++) {
+    uvs.setX(i, 1 - uvs.getX(i));
+  }
+  uvs.needsUpdate = true;
 
-  const backTex = new THREE.CanvasTexture(backCanvas);
-  const backMat = new THREE.MeshBasicMaterial({ map: backTex, side: THREE.DoubleSide });
-  const backMesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), backMat);
+  const backMesh = new THREE.Mesh(backGeo, mat);
   backMesh.position.set(0, 0, -zOffset);
   backMesh.rotation.y = Math.PI;
   group.add(backMesh);
@@ -120,11 +119,12 @@ export function buildJiaoxiWorld(scene) {
     group.rotation.y = rotY;
 
     const poleMat = new THREE.MeshLambertMaterial({ color: 0x5d4037 });
-    const pole1 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.2, 8), poleMat);
-    pole1.position.set(-1.4, 1.6, -0.08);
+    // 將支柱置於邊框左右兩側 (X = ±1.85, Z = 0)，完全避開前後看板文字，使正反雙面皆完整開闊無遮擋
+    const pole1 = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.2, 8), poleMat);
+    pole1.position.set(-1.85, 1.6, 0);
     pole1.castShadow = true;
-    const pole2 = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 3.2, 8), poleMat);
-    pole2.position.set(1.4, 1.6, -0.08);
+    const pole2 = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.2, 8), poleMat);
+    pole2.position.set(1.85, 1.6, 0);
     pole2.castShadow = true;
     group.add(pole1, pole2);
 
@@ -1340,8 +1340,15 @@ function createPhotoDisplay(parent, imgUrl, x, y, z, label) {
     const photoFront = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
     photoFront.position.set(x, y, z + 0.08);
 
-    // 背面照片（雙面皆可觀賞實景照片）
-    const photoBack = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
+    // 背面照片（雙面皆可觀賞實景照片，透過幾何體 UV 水平反轉抵消 180 度旋轉，正向無鏡像）
+    const backGeo = new THREE.PlaneGeometry(3.0, 2.0);
+    const uvs = backGeo.attributes.uv;
+    for (let i = 0; i < uvs.count; i++) {
+      uvs.setX(i, 1 - uvs.getX(i));
+    }
+    uvs.needsUpdate = true;
+
+    const photoBack = new THREE.Mesh(backGeo, photoMat);
     photoBack.position.set(x, y, z - 0.08);
     photoBack.rotation.y = Math.PI;
 

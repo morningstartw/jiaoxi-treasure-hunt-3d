@@ -49,6 +49,12 @@ export function buildJiaoxiWorld(scene) {
   // 3. 晴空漂浮 Low-Poly 白雲群
   createSkyClouds(scene, animatedUpdaters);
 
+  // 3.1 宜蘭雪山山脈環抱群峰 ＆ 太平洋龜山島地貌
+  createDistantMountainBackdrop(scene);
+
+  // 3.2 暖陽與大氣日芒天象
+  createSunAndAtmosphere(scene);
+
   // 4. 街道與石板路系統 + 斑馬線 + 景觀石燈籠
   createRoadsAndLanterns(scene);
 
@@ -268,6 +274,94 @@ function createSkyClouds(scene, animatedUpdaters) {
       }
     });
   });
+}
+
+// 宜蘭雪山山脈群峰環抱地貌 ＆ 太平洋龜山島地標遠景
+function createDistantMountainBackdrop(scene) {
+  const mountainGroup = new THREE.Group();
+
+  // 1. 北方與西北方遠景高聳雪山山脈（五峰旗後方與連綿山嶺）
+  const peakDefs = [
+    // 北方主脊（五峰旗後方層疊群峰）
+    { x: -55, z: 98, r: 24, h: 42, color: 0x243d2c },
+    { x: -28, z: 104, r: 26, h: 46, color: 0x2d4d36 },
+    { x: 0, z: 110, r: 28, h: 52, color: 0x385e42 },
+    { x: 30, z: 102, r: 25, h: 44, color: 0x243d2c },
+    { x: 62, z: 95, r: 22, h: 38, color: 0x2d4d36 },
+    // 西北方連峰（自五峰旗往湯圍溝延伸）
+    { x: -85, z: 82, r: 22, h: 36, color: 0x385e42 },
+    { x: -98, z: 52, r: 24, h: 38, color: 0x243d2c },
+    { x: -105, z: 18, r: 26, h: 40, color: 0x2d4d36 },
+    { x: -102, z: -25, r: 24, h: 36, color: 0x385e42 },
+    { x: -96, z: -62, r: 22, h: 34, color: 0x243d2c },
+    { x: -78, z: -88, r: 20, h: 32, color: 0x2d4d36 },
+    // 遠處第二層大氣淡青霧靄山嶺
+    { x: -40, z: 140, r: 35, h: 65, color: 0x486b53 },
+    { x: 15, z: 145, r: 38, h: 72, color: 0x41694b },
+    { x: 75, z: 135, r: 32, h: 60, color: 0x486b53 }
+  ];
+
+  peakDefs.forEach(p => {
+    const geo = new THREE.ConeGeometry(p.r, p.h, 7);
+    const mat = new THREE.MeshLambertMaterial({
+      color: p.color,
+      flatShading: true
+    });
+    const peak = new THREE.Mesh(geo, mat);
+    peak.position.set(p.x, p.h / 2 - 2, p.z);
+    mountainGroup.add(peak);
+  });
+
+  // 2. 東方太平洋遠景：宜蘭精神地標「龜山島」剪影 (Guishan Island)
+  const guishanGroup = new THREE.Group();
+  guishanGroup.position.set(135, 0, -20);
+  guishanGroup.rotation.y = -0.15;
+
+  const turtleMat = new THREE.MeshLambertMaterial({ color: 0x3b5a45, flatShading: true });
+
+  // 龜甲主峰
+  const shell = new THREE.Mesh(new THREE.ConeGeometry(12, 14, 8), turtleMat);
+  shell.position.set(0, 6, 0);
+  shell.scale.set(1.4, 0.85, 0.9);
+  guishanGroup.add(shell);
+
+  // 龜首（朝向東南方）
+  const head = new THREE.Mesh(new THREE.ConeGeometry(6, 9, 6), turtleMat);
+  head.position.set(12, 3.8, 4);
+  head.scale.set(1.1, 0.75, 0.9);
+  guishanGroup.add(head);
+
+  // 龜尾平緩延伸岩壁
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(10, 3, 5), turtleMat);
+  tail.position.set(-8, 1.2, -1);
+  guishanGroup.add(tail);
+
+  mountainGroup.add(guishanGroup);
+  scene.add(mountainGroup);
+}
+
+// 耀眼暖陽與大氣日芒
+function createSunAndAtmosphere(scene) {
+  const sunGroup = new THREE.Group();
+  sunGroup.position.set(65, 110, 50);
+
+  // 太陽本體發光球
+  const sunMat = new THREE.MeshBasicMaterial({ color: 0xfffae6 });
+  const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(6.5, 16, 16), sunMat);
+  sunGroup.add(sunMesh);
+
+  // 外層柔和日暈光環
+  const haloMat = new THREE.MeshBasicMaterial({
+    color: 0xffeaa7,
+    transparent: true,
+    opacity: 0.38,
+    side: THREE.DoubleSide
+  });
+  const haloMesh = new THREE.Mesh(new THREE.RingGeometry(6.6, 15.5, 24), haloMat);
+  haloMesh.lookAt(-65, -110, -50);
+  sunGroup.add(haloMesh);
+
+  scene.add(sunGroup);
 }
 
 // 道路與石燈籠引路系統（套用瀝青材質與斑馬線）

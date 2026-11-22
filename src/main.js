@@ -5,12 +5,13 @@ import { passport } from './passport.js';
 import { TASKS_DATA, SCENES_DATA, TREASURE_CHEST } from './culturalData.js';
 import { audio } from './audio.js';
 import { initVeggieMinigame, initPoeMinigame } from './minigames.js';
+import { createSkyGradientTexture } from './textures.js';
 
 // 初始化 Three.js 場景與渲染器
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // 天藍色背景
-scene.fog = new THREE.FogExp2(0xcce0ff, 0.007);
+scene.background = createSkyGradientTexture(); // 逼真自然大氣天穹垂直漸層
+scene.fog = new THREE.FogExp2(0xcce2f8, 0.0052); // 自然溫潤遠山大氣霧霾
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -408,6 +409,7 @@ function closeAllModals() {
   chestModal.classList.add('hidden');
   if (easterEggModal) easterEggModal.classList.add('hidden');
   if (creditsModal) creditsModal.classList.add('hidden');
+  player.clearKeys(); // 防止彈窗關閉後按鍵黏滯卡住
 }
 
 // 開啟素材與資料來源彈窗
@@ -448,8 +450,8 @@ window.addEventListener('keydown', (e) => {
 // 介面按鈕與畫布互動事件
 interactPrompt.addEventListener('click', triggerCurrentInteraction);
 container.addEventListener('click', (e) => {
-  // 如果點擊時已經處於互動範圍內且無彈窗，可直接觸發互動
-  if (!activeModal && currentNearbyObject && !player.isDragging) {
+  // 如果點擊時已經處於互動範圍內且無彈窗，且並非滑鼠拖曳視角後放開，才觸發互動（修復視角旋轉誤觸 Bug）
+  if (!activeModal && currentNearbyObject && !player.isDragging && !player.wasActuallyDragging) {
     triggerCurrentInteraction();
   }
 });
@@ -473,6 +475,15 @@ btnToggleSfx.addEventListener('click', () => {
 // 模態框關閉按鈕通用綁定
 document.querySelectorAll('.close-modal-btn').forEach(btn => {
   btn.addEventListener('click', closeAllModals);
+});
+
+// 點擊彈窗外部半透明遮罩背景時關閉彈窗（提升操作體驗）
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeAllModals();
+    }
+  });
 });
 
 // 視窗自適應縮放

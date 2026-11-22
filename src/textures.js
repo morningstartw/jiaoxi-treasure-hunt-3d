@@ -178,3 +178,24 @@ export function createWoodDeckTexture() {
   texture.repeat.set(3, 3);
   return texture;
 }
+
+// 產生高擬真大氣天穹垂直漸層材質（蔚藍天頂 ➔ 地平線溫暖大氣光暈）
+export function createSkyGradientTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  const grad = ctx.createLinearGradient(0, 0, 0, 512);
+  grad.addColorStop(0, '#1c7ed6');    // 天頂：深邃蔚藍
+  grad.addColorStop(0.38, '#4dabf7'); // 中天：晴朗天藍
+  grad.addColorStop(0.72, '#a5d8ff'); // 低空：清透薄霧
+  grad.addColorStop(0.9, '#fff3bf');  // 地平線：溫暖金黃日光光暈
+  grad.addColorStop(1.0, '#e7f5ff');  // 地表銜接白霧
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 512);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}

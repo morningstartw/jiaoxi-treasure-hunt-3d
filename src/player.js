@@ -102,6 +102,33 @@ export class PlayerController {
     this.rightLeg.castShadow = true;
     this.mesh.add(this.rightLeg);
 
+    // 雙手臂（具備跑步/行走自然前後擺動）
+    const armGeo = new THREE.CylinderGeometry(0.09, 0.08, 0.52, 8);
+    const armMat = new THREE.MeshLambertMaterial({ color: 0x0984e3 });
+    const handMat = new THREE.MeshLambertMaterial({ color: 0xffeaa7 });
+
+    this.leftArmGroup = new THREE.Group();
+    this.leftArmGroup.position.set(-0.46, 1.22, 0);
+    const leftArmMesh = new THREE.Mesh(armGeo, armMat);
+    leftArmMesh.position.y = -0.22;
+    leftArmMesh.castShadow = true;
+    this.leftArmGroup.add(leftArmMesh);
+    const leftHand = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), handMat);
+    leftHand.position.y = -0.48;
+    this.leftArmGroup.add(leftHand);
+    this.mesh.add(this.leftArmGroup);
+
+    this.rightArmGroup = new THREE.Group();
+    this.rightArmGroup.position.set(0.46, 1.22, 0);
+    const rightArmMesh = new THREE.Mesh(armGeo, armMat);
+    rightArmMesh.position.y = -0.22;
+    rightArmMesh.castShadow = true;
+    this.rightArmGroup.add(rightArmMesh);
+    const rightHand = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), handMat);
+    rightHand.position.y = -0.48;
+    this.rightArmGroup.add(rightHand);
+    this.mesh.add(this.rightArmGroup);
+
     this.scene.add(this.mesh);
   }
 
@@ -248,6 +275,8 @@ export class PlayerController {
     this.domElement.addEventListener('mousedown', (e) => {
       if (e.button === 0 || e.button === 2) {
         this.isDragging = true;
+        this.dragDist = 0;
+        this.wasActuallyDragging = false;
         this.prevMousePos = { x: e.clientX, y: e.clientY };
       }
     });
@@ -257,6 +286,12 @@ export class PlayerController {
     });
 
     window.addEventListener('mouseup', () => {
+      if (this.dragDist > 6) {
+        this.wasActuallyDragging = true;
+        setTimeout(() => {
+          this.wasActuallyDragging = false;
+        }, 120);
+      }
       this.isDragging = false;
     });
 
@@ -264,6 +299,7 @@ export class PlayerController {
       if (!this.isDragging) return;
       const dx = e.clientX - this.prevMousePos.x;
       const dy = e.clientY - this.prevMousePos.y;
+      this.dragDist += Math.hypot(dx, dy);
       this.prevMousePos = { x: e.clientX, y: e.clientY };
 
       this.cameraYaw -= dx * 0.006;
@@ -283,6 +319,7 @@ export class PlayerController {
     this.keys.right = false;
     this.keys.shift = false;
     this.isDragging = false;
+    this.wasActuallyDragging = false;
   }
 
   update(delta, time = 0, isModalActive = false) {
@@ -290,6 +327,8 @@ export class PlayerController {
       this.isMoving = false;
       this.leftLeg.rotation.x = 0;
       this.rightLeg.rotation.x = 0;
+      if (this.leftArmGroup) this.leftArmGroup.rotation.x = 0;
+      if (this.rightArmGroup) this.rightArmGroup.rotation.x = 0;
       this.updateGuideArrow(time);
       this.updateCamera(delta);
       return;
@@ -345,13 +384,22 @@ export class PlayerController {
       this.currentRotationY += diff * Math.min(1.0, delta * 12.0);
       this.mesh.rotation.y = this.currentRotationY;
 
-      // 行走動畫
-      this.animTime += delta * (this.keys.shift ? 16 : 10);
-      this.leftLeg.rotation.x = Math.sin(this.animTime) * 0.55;
-      this.rightLeg.rotation.x = -Math.sin(this.animTime) * 0.55;
+      // 擬真自然行走/奔跑擺動與步態起伏
+      const animRate = this.keys.shift ? 16 : 10.5;
+      this.animTime += delta * animRate;
+      this.leftLeg.rotation.x = Math.sin(this.animTime) * 0.58;
+      this.rightLeg.rotation.x = -Math.sin(this.animTime) * 0.58;
+
+      if (this.leftArmGroup && this.rightArmGroup) {
+        this.leftArmGroup.rotation.x = -Math.sin(this.animTime) * 0.62;
+        this.rightArmGroup.rotation.x = Math.sin(this.animTime) * 0.62;
+      }
+
+      // 行走時軀幹輕微起伏
+      this.position.y = Math.abs(Math.sin(this.animTime * 2)) * 0.055;
 
       this.footstepTimer += delta;
-      if (this.footstepTimer > (this.keys.shift ? 0.24 : 0.38)) {
+      if (this.footstepTimer > (this.keys.shift ? 0.23 : 0.36)) {
         this.footstepTimer = 0;
         audio.playFootstep();
       }
@@ -359,6 +407,10 @@ export class PlayerController {
       this.isMoving = false;
       this.leftLeg.rotation.x = 0;
       this.rightLeg.rotation.x = 0;
+      if (this.leftArmGroup) this.leftArmGroup.rotation.x = 0;
+      if (this.rightArmGroup) this.rightArmGroup.rotation.x = 0;
+      // 靜止時微弱呼吸律動
+      this.position.y = Math.sin(time * 2.2) * 0.015;
     }
 
     this.position.y = 0;

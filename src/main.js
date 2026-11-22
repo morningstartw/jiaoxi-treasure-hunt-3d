@@ -151,7 +151,11 @@ function triggerCurrentInteraction() {
   } else if (currentNearbyObject.type === 'chest') {
     openChestModal();
   } else if (currentNearbyObject.type === 'easter_egg') {
-    openEasterEggModal();
+    if (window.__triggerEasterEggReveal) {
+      window.__triggerEasterEggReveal(openEasterEggModal);
+    } else {
+      openEasterEggModal();
+    }
   }
 }
 

@@ -1210,10 +1210,40 @@ function populateVegetation(scene, colliders) {
 
 // ==============================================================
 // 隱藏終極彩蛋：金色巨大關公像與開發者秘密留言紙條 (14.0, 0, -58.0)
+// 初始隱藏於地底微光符石中，玩家主動調查時震撼召喚、拔地而起！
 // ==============================================================
 function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, colliders) {
+  let isRevealed = false;
+  let animating = false;
+  let animProgress = 0;
+
+  // 1. 初始隱藏的微光遠古符石（未喚醒前低調置於草地上）
+  const runeGroup = new THREE.Group();
+  runeGroup.position.set(14.0, 0, -58.2);
+
+  const runeStoneMat = new THREE.MeshLambertMaterial({ color: 0x3d4447 });
+  const runeStone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.68, 0.16, 8), runeStoneMat);
+  runeStone.position.y = 0.08;
+  runeStone.receiveShadow = true;
+  runeGroup.add(runeStone);
+
+  const runeDiscMat = new THREE.MeshBasicMaterial({ color: 0xffa502, transparent: true, opacity: 0.8 });
+  const runeDisc = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.42, 16), runeDiscMat);
+  runeDisc.rotation.x = -Math.PI / 2;
+  runeDisc.position.y = 0.17;
+  runeGroup.add(runeDisc);
+
+  const runeLight = new THREE.PointLight(0xffa502, 1.2, 5);
+  runeLight.position.set(0, 0.5, 0);
+  runeGroup.add(runeLight);
+
+  scene.add(runeGroup);
+
+  // 2. 巨大關公像群組（初始完全隱藏 scale 0）
   const eggGroup = new THREE.Group();
   eggGroup.position.set(14.0, 0, -61.0);
+  eggGroup.visible = false;
+  eggGroup.scale.set(0.001, 0.001, 0.001);
 
   // 金色反射高質感金屬材質
   const goldMat = new THREE.MeshStandardMaterial({
@@ -1234,7 +1264,7 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   const stoneMat = new THREE.MeshLambertMaterial({ color: 0x2c3437 });
   const bladeMat = new THREE.MeshStandardMaterial({ color: 0xe0f7fa, metalness: 0.95, roughness: 0.1 });
 
-  // 1. 雙層金邊蓮花石台基座
+  // 雙層金邊蓮花石台基座
   const plinthBase = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.6, 4.4), stoneMat);
   plinthBase.position.y = 0.3;
   plinthBase.receiveShadow = true;
@@ -1246,8 +1276,7 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   plinthTop.castShadow = true;
   eggGroup.add(plinthTop);
 
-  // 2. 巨大關公像主體 (高達 6.5 公尺)
-  // 鎧甲身軀
+  // 巨大關公像主體 (高達 6.5 公尺)
   const body = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 1.15, 2.6, 12), goldMat);
   body.position.y = 2.1;
   body.castShadow = true;
@@ -1294,7 +1323,7 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   cape.castShadow = true;
   eggGroup.add(cape);
 
-  // 3. 青龍偃月刀 (長達 7.5 公尺神兵利器)
+  // 青龍偃月刀 (長達 7.5 公尺神兵利器)
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 7.2, 8), darkGoldMat);
   pole.position.set(1.4, 3.6, 0.35);
   pole.rotation.z = -0.12;
@@ -1311,9 +1340,9 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   crescentBlade.castShadow = true;
   eggGroup.add(crescentBlade);
 
-  // 4. 金光神聖粒子特效 (金色光點冉冉升騰)
+  // 金光神聖粒子特效 (金色光點冉冉升騰)
   const auraGeo = new THREE.BufferGeometry();
-  const auraCount = 45;
+  const auraCount = 55;
   const auraPos = new Float32Array(auraCount * 3);
   for (let i = 0; i < auraCount; i++) {
     auraPos[i * 3] = (Math.random() - 0.5) * 5.0;
@@ -1323,18 +1352,20 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   auraGeo.setAttribute('position', new THREE.BufferAttribute(auraPos, 3));
   const auraMat = new THREE.PointsMaterial({
     color: 0xfff275,
-    size: 0.32,
+    size: 0.35,
     transparent: true,
-    opacity: 0.75
+    opacity: 0.8
   });
   const auraParticles = new THREE.Points(auraGeo, auraMat);
   eggGroup.add(auraParticles);
 
   scene.add(eggGroup);
 
-  // 5. 開發者秘密留言紙條石台 (立於 14.0, 0, -58.8)
+  // 3. 開發者秘密留言紙條石台 (初始隱藏)
   const noteGroup = new THREE.Group();
   noteGroup.position.set(14.0, 0, -58.8);
+  noteGroup.visible = false;
+  noteGroup.scale.set(0.001, 0.001, 0.001);
 
   const notePedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.55, 0.9, 12), stoneMat);
   notePedestal.position.y = 0.45;
@@ -1365,34 +1396,84 @@ function buildGoldenGuanYuEasterEgg(scene, animatedUpdaters, createRing, collide
   noteGroup.add(seal);
 
   // 柔和金光光暈
-  const noteLight = new THREE.PointLight(0xffd700, 2.2, 9);
+  const noteLight = new THREE.PointLight(0xffd700, 2.5, 9);
   noteLight.position.set(0, 1.4, 0);
   noteGroup.add(noteLight);
 
   scene.add(noteGroup);
 
-  // 6. 動態粒子與金光更新
+  // 4. 註冊互動光圈（初始提示為神祕古印記，喚醒後變更為關公像留言）
+  const trigger = createRing(14.0, -58.0, '【神秘古代印記】調查松樹下的微光符石', 'easter_egg', 'easter_egg_guanyu');
+
+  // 5. 互動喚醒事件綁定
+  window.__triggerEasterEggReveal = function(callback) {
+    if (!isRevealed) {
+      isRevealed = true;
+      animating = true;
+      animProgress = 0;
+      eggGroup.visible = true;
+      noteGroup.visible = true;
+
+      // 更新互動標籤
+      trigger.label = '【隱藏彩蛋】金色巨大關公像・開發者秘密留言';
+
+      // 震撼拔地而起動畫完成後，開啟開發者紙條彈窗
+      setTimeout(() => {
+        if (callback) callback();
+      }, 1500);
+
+      // 喚醒後加入實體碰撞體，保護關公像與石台不被穿模
+      if (colliders) {
+        colliders.push({ type: 'box', minX: 11.8, maxX: 16.2, minZ: -63.2, maxZ: -59.5 });
+        colliders.push({ type: 'circle', x: 14.0, z: -58.8, radius: 0.55 });
+      }
+    } else {
+      // 若已喚醒過，再次調查直接開啟彈窗
+      if (callback) callback();
+    }
+  };
+
+  // 6. 動態更新器（微光符石呼吸發光 ＆ 拔地而起平滑動態 ＆ 金光粒子）
   animatedUpdaters.push((delta, time) => {
-    const arr = auraGeo.attributes.position.array;
-    for (let i = 0; i < auraCount; i++) {
-      arr[i * 3 + 1] += delta * 0.9;
-      arr[i * 3] += Math.sin(time * 2 + i) * 0.012;
-      if (arr[i * 3 + 1] > 7.5) {
-        arr[i * 3 + 1] = 0.5;
+    if (!isRevealed) {
+      // 未喚醒時：微光符石緩慢呼吸自轉發光
+      runeLight.intensity = 1.0 + Math.sin(time * 3.0) * 0.45;
+      runeDisc.rotation.z = time * 0.4;
+    } else if (animating) {
+      // 喚醒瞬間：平滑拔地而起（Ease-Out 曲線）
+      animProgress = Math.min(1.0, animProgress + delta * 0.75);
+      const ease = Math.sin((animProgress * Math.PI) / 2);
+
+      eggGroup.scale.set(ease, ease, ease);
+      eggGroup.position.y = (ease - 1.0) * 6.0;
+
+      noteGroup.scale.set(ease, ease, ease);
+      noteGroup.position.y = (ease - 1.0) * 1.5;
+
+      runeGroup.scale.set(Math.max(0.001, 1.0 - ease), Math.max(0.001, 1.0 - ease), Math.max(0.001, 1.0 - ease));
+
+      if (animProgress >= 1.0) {
+        animating = false;
+        eggGroup.scale.set(1, 1, 1);
+        eggGroup.position.y = 0;
+        noteGroup.scale.set(1, 1, 1);
+        noteGroup.position.y = 0;
+        runeGroup.visible = false;
       }
     }
-    auraGeo.attributes.position.needsUpdate = true;
-    noteLight.intensity = 2.0 + Math.sin(time * 3.5) * 0.4;
+
+    // 關公神像金光粒子升騰
+    if (isRevealed) {
+      const arr = auraGeo.attributes.position.array;
+      for (let i = 0; i < auraCount; i++) {
+        arr[i * 3 + 1] += delta * 1.15;
+        arr[i * 3] += Math.sin(time * 2.5 + i) * 0.015;
+        if (arr[i * 3 + 1] > 7.5) {
+          arr[i * 3 + 1] = 0.5;
+        }
+      }
+      auraGeo.attributes.position.needsUpdate = true;
+      noteLight.intensity = 2.0 + Math.sin(time * 3.5) * 0.4;
+    }
   });
-
-  // 7. 註冊互動光圈（剛好涵蓋玩家站立的 14.0, -58.0 核心區域，半徑 3.2m）
-  createRing(14.0, -58.0, '【隱藏彩蛋】金色巨大關公像・開發者秘密留言', 'easter_egg', 'easter_egg_guanyu');
-
-  // 8. 註冊實體防穿模碰撞體
-  if (colliders) {
-    // 關公石台座碰撞體
-    colliders.push({ type: 'box', minX: 11.8, maxX: 16.2, minZ: -63.2, maxZ: -59.5 });
-    // 留言石台圓柱碰撞體
-    colliders.push({ type: 'circle', x: 14.0, z: -58.8, radius: 0.55 });
-  }
 }

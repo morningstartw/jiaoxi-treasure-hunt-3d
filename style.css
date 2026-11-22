@@ -922,3 +922,528 @@ kbd {
   color: #b71540;
   font-style: normal;
 }
+
+/* ==============================================================
+   文化小遊戲模組視覺樣式（任務二：蔬果分類 ＆ 任務四：協天廟擲筊）
+   ============================================================== */
+
+.minigame-container {
+  margin: 12px 0 16px 0;
+  transition: all 0.3s ease;
+}
+
+.game-instruction-banner {
+  background: #fdfaf5;
+  border-left: 4px solid #e67e22;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  color: #333;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.basket-target-badge {
+  display: inline-block;
+  background: #e67e22;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+
+/* 溫泉竹籃區域 */
+.hot-spring-basket-area {
+  background: linear-gradient(145deg, #c4915a, #a66f38);
+  border: 3px solid #845322;
+  border-radius: 16px;
+  padding: 16px 18px;
+  position: relative;
+  box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25), 0 6px 16px rgba(132, 83, 34, 0.2);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.basket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.basket-counter {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px 10px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+}
+
+.basket-steam {
+  position: absolute;
+  top: 4px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.basket-steam span {
+  display: inline-block;
+  animation: steamRise 2.2s infinite ease-in-out;
+}
+.basket-steam span:nth-child(2) { animation-delay: 0.6s; }
+.basket-steam span:nth-child(3) { animation-delay: 1.2s; }
+
+@keyframes steamRise {
+  0% { transform: translateY(6px) scale(0.8); opacity: 0.3; }
+  50% { transform: translateY(-4px) scale(1.1); opacity: 0.85; }
+  100% { transform: translateY(-12px) scale(1.2); opacity: 0; }
+}
+
+.basket-slots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.basket-slot {
+  background: rgba(255, 255, 255, 0.88);
+  border: 2px dashed #b87c42;
+  border-radius: 12px;
+  padding: 12px 6px;
+  text-align: center;
+  min-height: 85px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.basket-slot.filled {
+  background: #ffffff;
+  border: 2px solid #2ed573;
+  box-shadow: 0 4px 10px rgba(46, 213, 115, 0.3);
+}
+
+.slot-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.slot-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2f3542;
+  margin-top: 4px;
+}
+
+.slot-placeholder {
+  font-size: 1.5rem;
+  color: #b87c42;
+  font-weight: bold;
+}
+
+.slot-check {
+  font-size: 0.72rem;
+  color: #2ed573;
+  font-weight: bold;
+  background: #e8f8f0;
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-top: 3px;
+}
+
+.basket-complete {
+  border-color: #ffd700;
+  box-shadow: 0 0 18px rgba(255, 215, 0, 0.6);
+}
+
+/* 蔬果選擇卡片 */
+.veggie-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.veggie-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #ffffff;
+  border: 1.5px solid #e1e2e6;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.veggie-card-btn:hover:not(:disabled) {
+  border-color: #e67e22;
+  background: #fffaf5;
+  transform: translateX(4px);
+  box-shadow: 0 3px 10px rgba(230, 126, 34, 0.15);
+}
+
+.veggie-card-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  background: #f1f2f6;
+  border-color: #ced6e0;
+}
+
+.veggie-card-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.veggie-card-info {
+  flex-grow: 1;
+}
+
+.veggie-card-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #2f3542;
+}
+
+.veggie-card-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  color: #e67e22;
+  background: #fff3e6;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin: 2px 0 3px 0;
+  font-weight: 600;
+}
+
+.veggie-card-desc {
+  font-size: 0.8rem;
+  color: #747d8c;
+  line-height: 1.35;
+}
+
+.veggie-card-action {
+  flex-shrink: 0;
+}
+
+.pick-tag {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #e67e22;
+  background: #fff2e0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ffd4a3;
+}
+
+.picked-tag {
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #2ed573;
+  background: #e8f8f0;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.shake-error {
+  animation: cardShake 0.45s ease-in-out;
+  border-color: #ff4757 !important;
+  background: #ffeef0 !important;
+}
+
+@keyframes cardShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.game-toast {
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.toast-success {
+  background: #e8f8f0;
+  border: 1px solid #2ed573;
+  color: #10ac84;
+}
+
+.toast-hint {
+  background: #fff9e6;
+  border: 1px solid #ffd32a;
+  color: #d35400;
+}
+
+/* ==============================================================
+   任務四：協天廟擲筊小遊戲樣式
+   ============================================================== */
+
+.poe-game-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.altar-banner {
+  background: linear-gradient(135deg, #a71d2a, #78101a);
+  color: #ffd700;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ffd700;
+  box-shadow: 0 4px 10px rgba(120, 16, 26, 0.25);
+}
+
+.altar-tag {
+  font-size: 0.95rem;
+  font-weight: bold;
+}
+
+.altar-sub {
+  font-size: 0.82rem;
+  color: #ffeaa7;
+  margin-top: 2px;
+}
+
+.poe-stage-box {
+  background: radial-gradient(circle at center, #6b1419 0%, #3e070a 100%);
+  border: 3px solid #d4af37;
+  border-radius: 16px;
+  padding: 20px 14px 16px 14px;
+  position: relative;
+  text-align: center;
+  box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.6), 0 6px 18px rgba(0, 0, 0, 0.25);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.stage-divine-glow {
+  box-shadow: inset 0 0 25px rgba(255, 215, 0, 0.4), 0 0 22px rgba(255, 215, 0, 0.5);
+  border-color: #ffd700;
+}
+
+.incense-burn-decor {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  color: #ffd700;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  opacity: 0.9;
+}
+
+.poe-pair-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 36px;
+  margin: 18px 0;
+  min-height: 80px;
+  perspective: 600px;
+}
+
+/* 筊杯實體外觀（半月型木造筶杯） */
+.poe-block {
+  width: 75px;
+  height: 48px;
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.poe-block-a {
+  transform: rotate(-15deg);
+}
+
+.poe-block-b {
+  transform: rotate(15deg) scaleX(-1);
+}
+
+/* 翻轉動畫 */
+.poe-anim-tossing .poe-block-a {
+  animation: poeTumbleA 0.85s ease-in-out infinite;
+}
+
+.poe-anim-tossing .poe-block-b {
+  animation: poeTumbleB 0.85s ease-in-out infinite;
+}
+
+@keyframes poeTumbleA {
+  0% { transform: translateY(0) rotate(0deg) scale(1); }
+  50% { transform: translateY(-70px) rotateX(720deg) rotateZ(180deg) scale(1.25); }
+  100% { transform: translateY(0) rotate(-15deg) scale(1); }
+}
+
+@keyframes poeTumbleB {
+  0% { transform: translateY(0) rotate(0deg) scaleX(-1); }
+  50% { transform: translateY(-75px) rotateX(680deg) rotateZ(-160deg) scale(1.25); }
+  100% { transform: translateY(0) rotate(15deg) scaleX(-1); }
+}
+
+/* 筊杯彎月形狀本體 */
+.poe-crescent {
+  width: 100%;
+  height: 100%;
+  border-radius: 50% 50% 15% 15% / 75% 75% 25% 25%;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 凸面（陽面：外凸圓弧赤紅塗漆） */
+.poe-face-curved {
+  background: radial-gradient(circle at 40% 30%, #d63031, #800000 85%);
+  border: 1.5px solid #ff7675;
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.5), 0 5px 12px rgba(0, 0, 0, 0.5);
+}
+
+.poe-face-curved .poe-flat-side {
+  display: none;
+}
+
+/* 平面（陰面：平滑原木紋理） */
+.poe-face-flat {
+  background: linear-gradient(135deg, #dfa35c, #aa6c29);
+  border: 1.5px solid #ffeaa7;
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.4), 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+.poe-face-flat .poe-curved-side {
+  display: none;
+}
+
+.poe-grain-mark {
+  color: #4a2800;
+  font-size: 1.2rem;
+  opacity: 0.65;
+}
+
+/* 擲筊結果銘牌 */
+.poe-result-banner {
+  background: rgba(0, 0, 0, 0.65);
+  border-radius: 10px;
+  padding: 8px 14px;
+  max-width: 90%;
+  margin-top: 6px;
+}
+
+.poe-tag {
+  font-size: 0.96rem;
+  font-weight: 800;
+  margin-bottom: 3px;
+}
+
+.tag-sheng {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.tag-xiao {
+  color: #ffeaa7;
+}
+
+.tag-yin {
+  color: #ff7675;
+}
+
+.poe-desc {
+  font-size: 0.8rem;
+  color: #ffffff;
+  line-height: 1.4;
+}
+
+/* 擲筊操作區 */
+.poe-actions-area {
+  margin-top: 4px;
+}
+
+.toss-action-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #c0392b, #8e1b1b);
+  border: 2px solid #ffd700;
+  color: #ffd700;
+  font-size: 1.05rem;
+  font-weight: bold;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(142, 27, 27, 0.4);
+  transition: all 0.2s ease;
+}
+
+.toss-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(142, 27, 27, 0.55);
+  background: linear-gradient(135deg, #d63031, #a71d2a);
+}
+
+.toss-tip-text {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #636e72;
+  margin-top: 6px;
+}
+
+/* 乞龜成功授印小卡 */
+.turtle-awarded-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #fdfaf0, #fff4d2);
+  border: 2px solid #e1b12c;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(225, 177, 44, 0.25);
+  text-align: left;
+}
+
+.turtle-badge-icon {
+  font-size: 2.4rem;
+  flex-shrink: 0;
+}
+
+.turtle-badge-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #b71540;
+  margin-bottom: 3px;
+}
+
+.turtle-badge-pledge {
+  font-size: 0.82rem;
+  color: #4b6584;
+  line-height: 1.4;
+}
+
+.minigame-replay-row {
+  display: flex;
+  justify-content: center;
+}
+
+.small-btn {
+  font-size: 0.84rem;
+  padding: 6px 14px;
+}
+

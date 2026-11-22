@@ -4,6 +4,7 @@ import { PlayerController } from './player.js';
 import { passport } from './passport.js';
 import { TASKS_DATA, SCENES_DATA, TREASURE_CHEST } from './culturalData.js';
 import { audio } from './audio.js';
+import { initVeggieMinigame, initPoeMinigame } from './minigames.js';
 
 // 初始化 Three.js 場景與渲染器
 const container = document.getElementById('canvas-container');
@@ -191,13 +192,13 @@ function openTaskModal(task) {
   promptText.textContent = task.prompt;
 
   const optionsContainer = document.getElementById('task-options-container');
-  optionsContainer.innerHTML = '';
-
+  const minigameContainer = document.getElementById('task-minigame-container');
   const feedbackBox = document.getElementById('task-feedback-box');
+  const explainBox = document.getElementById('task-explain-box');
+
+  optionsContainer.innerHTML = '';
   feedbackBox.className = 'feedback-box hidden';
   feedbackBox.innerHTML = '';
-
-  const explainBox = document.getElementById('task-explain-box');
   explainBox.className = 'explain-box hidden';
 
   if (isCompleted) {
@@ -212,20 +213,71 @@ function openTaskModal(task) {
     `;
   }
 
-  task.options.forEach((opt, idx) => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.textContent = opt.text;
-    if (isCompleted) {
-      btn.disabled = true;
-      if (opt.isCorrect) btn.classList.add('correct-answer');
-    } else {
-      btn.addEventListener('click', () => {
-        handleOptionAnswer(task, opt, btn);
-      });
-    }
-    optionsContainer.appendChild(btn);
-  });
+  // 判斷是否為情境小遊戲任務（任務二：溫泉蔬果採集 / 任務四：協天廟擲筊乞龜）
+  if (task.id === 'task_crops') {
+    optionsContainer.classList.add('hidden');
+    minigameContainer.classList.remove('hidden');
+    minigameContainer.innerHTML = '';
+    initVeggieMinigame({
+      container: minigameContainer,
+      task,
+      passport,
+      audio,
+      onComplete: (completedTask) => {
+        showMinigameCompletion(completedTask);
+      }
+    });
+  } else if (task.id === 'task_turtle') {
+    optionsContainer.classList.add('hidden');
+    minigameContainer.classList.remove('hidden');
+    minigameContainer.innerHTML = '';
+    initPoeMinigame({
+      container: minigameContainer,
+      task,
+      passport,
+      audio,
+      onComplete: (completedTask) => {
+        showMinigameCompletion(completedTask);
+      }
+    });
+  } else {
+    // 一般文化知識選擇題（任務一、任務三、任務五）
+    minigameContainer.classList.add('hidden');
+    optionsContainer.classList.remove('hidden');
+
+    task.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = opt.text;
+      if (isCompleted) {
+        btn.disabled = true;
+        if (opt.isCorrect) btn.classList.add('correct-answer');
+      } else {
+        btn.addEventListener('click', () => {
+          handleOptionAnswer(task, opt, btn);
+        });
+      }
+      optionsContainer.appendChild(btn);
+    });
+  }
+}
+
+function showMinigameCompletion(task) {
+  const feedbackBox = document.getElementById('task-feedback-box');
+  const explainBox = document.getElementById('task-explain-box');
+
+  feedbackBox.className = 'feedback-box feedback-success pop-in';
+  feedbackBox.innerHTML = `<strong>✔ 太棒了，互動挑戰圓滿成功！</strong> 成功取得一枚【${task.stampName}】！`;
+
+  explainBox.classList.remove('hidden');
+  explainBox.innerHTML = `
+    <div class="explain-title">【文化深度解說】</div>
+    <p class="explain-text">${task.explanation}</p>
+    <div class="stamp-awarded-display pop-in">
+      <img src="images/${task.stampId}.svg" alt="${task.stampName}" />
+      <span>已蓋印：${task.stampName}</span>
+    </div>
+  `;
 }
 
 function handleOptionAnswer(task, option, btnElement) {

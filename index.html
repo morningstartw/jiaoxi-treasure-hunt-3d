@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>礁溪尋寶：溫泉小鎮的祕密任務 | 3D 文化探索遊戲</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- 3D 畫布容器 -->
+  <div id="canvas-container"></div>
+
+  <!-- 頂部 HUD 控制列 -->
+  <header id="top-hud">
+    <div class="hud-left">
+      <div class="app-logo">♨️ 礁溪尋寶：溫泉小鎮的祕密任務</div>
+      <div class="progress-box">
+        <span id="hud-progress-text">印章進度：0 / 5</span>
+        <div class="progress-bar-bg">
+          <div id="hud-progress-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="hud-right">
+      <button id="btn-toggle-bgm" class="hud-btn" title="切換背景音樂">🎵 音樂：關</button>
+      <button id="btn-toggle-sfx" class="hud-btn" title="切換音效">🔊 音效：開</button>
+      <button id="btn-open-passport" class="hud-btn highlight-btn" title="查看護照 (按 P)">📖 尋寶護照 (P)</button>
+      <button id="btn-reset-game" class="hud-btn reset-btn" title="重新遊玩">🔄 重新遊玩</button>
+    </div>
+  </header>
+
+  <!-- 底部即時任務提示導航 -->
+  <div id="bottom-hint-hud">
+    <div class="hint-icon">🧭</div>
+    <div id="hud-hint-text">正在載入任務...</div>
+  </div>
+
+  <!-- 左下角鍵盤操作說明小卡 -->
+  <aside id="controls-help">
+    <div class="help-title">🎮 操作說明</div>
+    <ul>
+      <li><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / 方向鍵：移動旅人</li>
+      <li><kbd>Shift</kbd>：奔跑加速</li>
+      <li><kbd>滑鼠右鍵拖曳</kbd>：旋轉 3D 視角</li>
+      <li><kbd>滾輪</kbd>：縮放鏡頭距離</li>
+      <li><kbd>E</kbd> / 點擊：調查線索或開啟寶箱</li>
+      <li><kbd>P</kbd>：隨時翻閱尋寶護照</li>
+    </ul>
+  </aside>
+
+  <!-- 鄰近互動調查提示 -->
+  <div id="interact-prompt" class="hidden">
+    <div class="prompt-key">按 <kbd>E</kbd> 或點擊</div>
+    <div class="prompt-desc">調查：<span id="interact-target-name">線索</span></div>
+  </div>
+
+  <!-- 模態框 A：線索調查與問答視窗 -->
+  <div id="task-modal" class="modal-overlay hidden">
+    <div class="modal-box task-card">
+      <button class="modal-close-x close-modal-btn">&times;</button>
+      <div class="modal-header">
+        <h2 id="task-modal-header">任務標題</h2>
+        <div id="task-modal-location" class="location-badge">景點名稱</div>
+      </div>
+
+      <div class="modal-body">
+        <!-- 實景照片展示區 -->
+        <div class="photo-container">
+          <img id="task-modal-photo" src="" alt="礁溪實景照片" class="task-real-img" />
+          <div class="photo-caption">📷 礁溪實景照片考證</div>
+        </div>
+
+        <!-- 任務問題說明 -->
+        <div class="prompt-text-box">
+          <p id="task-modal-prompt">問題描述...</p>
+        </div>
+
+        <!-- 選項按鈕列表 -->
+        <div id="task-options-container" class="options-grid"></div>
+
+        <!-- 答題反饋提示 -->
+        <div id="task-feedback-box" class="feedback-box hidden"></div>
+
+        <!-- 答對後的文化深入解說 -->
+        <div id="task-explain-box" class="explain-box hidden"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn close-modal-btn">關閉返回地圖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模態框 B：尋寶護照手帳視窗 -->
+  <div id="passport-modal" class="modal-overlay hidden">
+    <div class="modal-box passport-card">
+      <button class="modal-close-x close-modal-btn">&times;</button>
+      <div class="modal-header passport-header">
+        <h2>📕 礁溪文化尋寶護照</h2>
+        <p class="passport-subtitle">Jiaoxi Cultural Treasure Passport</p>
+      </div>
+
+      <div class="modal-body">
+        <div class="passport-info-banner">
+          <div>持照旅人：<strong>礁溪初訪探索者</strong></div>
+          <div id="passport-chest-status" class="status-msg">正在檢視印章進度...</div>
+        </div>
+
+        <!-- 5 枚印章展示網格 -->
+        <div id="passport-stamps-grid" class="stamps-grid"></div>
+
+        <div class="passport-instructions">
+          <h3>📌 護照使用說明</h3>
+          <p>走訪湯圍溝溫泉公園、礁溪協天廟、五峰旗風景特定區，完成各處線索任務即可獲取專屬文化印章。集滿全部 5 枚印章後，請回到中央起點廣場的「旅人任務板」開啟文化寶箱，取得「礁溪文化旅人」數位徽章！</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="secondary-btn close-modal-btn">收起護照</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模態框 C：文化寶箱成就視窗 -->
+  <div id="chest-modal" class="modal-overlay hidden">
+    <div class="modal-box chest-card">
+      <button class="modal-close-x close-modal-btn">&times;</button>
+      <div id="chest-modal-content" class="modal-body text-center">
+        <!-- 動態渲染開箱結果或未集滿提示 -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

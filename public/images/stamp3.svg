@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <defs>
+        <filter id="rough">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+      <circle cx="100" cy="100" r="90" fill="none" stroke="#d35400" stroke-width="6" stroke-dasharray="14 6" opacity="0.85" filter="url(#rough)"/>
+      <circle cx="100" cy="100" r="76" fill="none" stroke="#d35400" stroke-width="2.5" opacity="0.9"/>
+      <circle cx="100" cy="100" r="70" fill="#d35400" fill-opacity="0.08"/>
+      <text x="100" y="65" font-family="serif" font-size="20" fill="#d35400" text-anchor="middle" font-weight="bold" letter-spacing="4">礁溪文化印</text>
+      <text x="100" y="112" font-size="38" text-anchor="middle">🏯</text>
+      <text x="100" y="152" font-family="serif" font-size="22" fill="#d35400" text-anchor="middle" font-weight="bold" letter-spacing="5">忠義千秋</text>
+    </svg>

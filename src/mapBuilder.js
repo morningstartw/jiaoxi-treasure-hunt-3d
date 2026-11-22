@@ -6,7 +6,8 @@ import {
   createAsphaltTexture,
   createCrosswalkTexture,
   createCobblestoneTexture,
-  createWoodDeckTexture
+  createWoodDeckTexture,
+  createWaterfallTexture
 } from './textures.js';
 
 export function buildJiaoxiWorld(scene) {
@@ -1069,63 +1070,206 @@ function createTemplePaifang(parent, x, y, z) {
   parent.add(paifang);
 }
 
-// 景點三：五峰旗風景特定區
+// 景點三：五峰旗風景特定區（真實三層動態奔騰飛瀑與自然岩壁峽谷）
 function buildWufengqiFalls(scene, animatedUpdaters, createRing) {
   const root = new THREE.Group();
   root.position.set(0, 0, 54);
 
-  const cliffMat = new THREE.MeshLambertMaterial({ color: 0x2d3436, roughness: 0.95 });
-  const cliff = new THREE.Mesh(new THREE.BoxGeometry(50, 30, 20), cliffMat);
-  cliff.position.set(0, 15, 10);
-  cliff.castShadow = true;
-  root.add(cliff);
+  // 自然岩石與苔蘚材質（杜絕單調黑色方塊，呈現自然地質層理）
+  const rockMat1 = new THREE.MeshLambertMaterial({ color: 0x576574, flatShading: true });
+  const rockMat2 = new THREE.MeshLambertMaterial({ color: 0x485460, flatShading: true });
+  const mossMat = new THREE.MeshLambertMaterial({ color: 0x2e7d32, flatShading: true });
 
-  const peakMat = new THREE.MeshLambertMaterial({ color: 0x145a32 });
-  [-16, -8, 0, 8, 16].forEach((px, idx) => {
-    const height = idx === 2 ? 42 : (idx === 1 || idx === 3 ? 36 : 30);
-    const peak = new THREE.Mesh(new THREE.ConeGeometry(7.0, height, 5), peakMat);
-    peak.position.set(px, height / 2 + 10, 16);
+  // 1. 分層階梯式自然岩壁峽谷（低中高三層基底岩階）
+  // 底層岩壁台階 (y: 0 ~ 8)
+  const lowerCliffL = new THREE.Mesh(new THREE.DodecahedronGeometry(8.5, 1), rockMat1);
+  lowerCliffL.position.set(-10, 4.5, 6);
+  lowerCliffL.scale.set(1.4, 0.9, 1.2);
+  lowerCliffL.castShadow = true;
+  root.add(lowerCliffL);
+
+  const lowerCliffR = new THREE.Mesh(new THREE.DodecahedronGeometry(8.5, 1), rockMat1);
+  lowerCliffR.position.set(10, 4.5, 6);
+  lowerCliffR.scale.set(1.4, 0.9, 1.2);
+  lowerCliffR.castShadow = true;
+  root.add(lowerCliffR);
+
+  // 中層岩壁平台 (y: 8 ~ 18)
+  const midCliffL = new THREE.Mesh(new THREE.DodecahedronGeometry(9.0, 1), rockMat2);
+  midCliffL.position.set(-8, 13, 9);
+  midCliffL.scale.set(1.3, 1.1, 1.1);
+  midCliffL.castShadow = true;
+  root.add(midCliffL);
+
+  const midCliffR = new THREE.Mesh(new THREE.DodecahedronGeometry(9.0, 1), rockMat2);
+  midCliffR.position.set(8, 13, 9);
+  midCliffR.scale.set(1.3, 1.1, 1.1);
+  midCliffR.castShadow = true;
+  root.add(midCliffR);
+
+  // 頂層山峽主崖壁 (y: 18 ~ 30)
+  const upperCliffL = new THREE.Mesh(new THREE.DodecahedronGeometry(9.5, 1), rockMat1);
+  upperCliffL.position.set(-7, 22, 12);
+  upperCliffL.scale.set(1.2, 1.2, 1.0);
+  upperCliffL.castShadow = true;
+  root.add(upperCliffL);
+
+  const upperCliffR = new THREE.Mesh(new THREE.DodecahedronGeometry(9.5, 1), rockMat1);
+  upperCliffR.position.set(7, 22, 12);
+  upperCliffR.scale.set(1.2, 1.2, 1.0);
+  upperCliffR.castShadow = true;
+  root.add(upperCliffR);
+
+  // 峽谷後方厚實襯底山壁（自然岩色，具備斜度與深淺陰影）
+  const backCliffGeo = new THREE.BoxGeometry(44, 28, 12);
+  const backCliff = new THREE.Mesh(backCliffGeo, rockMat2);
+  backCliff.position.set(0, 15, 15);
+  backCliff.castShadow = true;
+  root.add(backCliff);
+
+  // 崖頂苔蘚綠植階地
+  const mossLedge1 = new THREE.Mesh(new THREE.BoxGeometry(12, 1.2, 6), mossMat);
+  mossLedge1.position.set(-8, 9.2, 6.5);
+  root.add(mossLedge1);
+
+  const mossLedge2 = new THREE.Mesh(new THREE.BoxGeometry(12, 1.2, 6), mossMat);
+  mossLedge2.position.set(8, 9.2, 6.5);
+  root.add(mossLedge2);
+
+  // 2. 後方五座如戰場旌旗的並列尖峰（五峰旗地標名稱由來）
+  const peakMat = new THREE.MeshLambertMaterial({ color: 0x1e5631, flatShading: true });
+  [-17, -8.5, 0, 8.5, 17].forEach((px, idx) => {
+    const height = idx === 2 ? 46 : (idx === 1 || idx === 3 ? 38 : 32);
+    const peak = new THREE.Mesh(new THREE.ConeGeometry(7.5, height, 6), peakMat);
+    peak.position.set(px, height / 2 + 10, 20);
     peak.castShadow = true;
     root.add(peak);
   });
 
-  const fallMat1 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.94 });
-  const fallMat2 = new THREE.MeshBasicMaterial({ color: 0xe0f7fa, transparent: true, opacity: 0.88 });
+  // 3. 真實三層動態奔流瀑布系統（採用真實水沫流動貼圖 ＆ 三層立體層疊）
+  const waterfallTex = createWaterfallTexture();
 
-  const fall1 = new THREE.Mesh(new THREE.PlaneGeometry(3.8, 14), fallMat1);
-  fall1.position.set(0, 20, 0.1);
-  root.add(fall1);
+  // 瀑布外層：奔騰白浪水絲材質
+  const fallMat = new THREE.MeshBasicMaterial({
+    map: waterfallTex,
+    transparent: true,
+    opacity: 0.94,
+    side: THREE.DoubleSide
+  });
 
-  const fall2 = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 10), fallMat2);
-  fall2.position.set(0, 9.5, 0.2);
-  root.add(fall2);
+  // 瀑布內核：清澈蔚藍激流水身材質（賦予深層立體水體感）
+  const waterCoreMat = new THREE.MeshStandardMaterial({
+    color: 0x00d2d3,
+    roughness: 0.1,
+    metalness: 0.35,
+    transparent: true,
+    opacity: 0.82,
+    side: THREE.DoubleSide
+  });
 
-  const pondMat = new THREE.MeshStandardMaterial({ color: 0x006266, roughness: 0.15, metalness: 0.2 });
-  const pond = new THREE.Mesh(new THREE.CylinderGeometry(8.5, 8.5, 0.4, 32), pondMat);
-  pond.position.set(0, 0.2, 0);
+  // [第一層・上層飛瀑] (高達 11 公尺，自高山峽谷頂端奔瀉直下)
+  const fall1Group = new THREE.Group();
+  fall1Group.position.set(0, 24.5, 9.5);
+  const fall1Mesh = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 11), fallMat);
+  const fall1Core = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 11), waterCoreMat);
+  fall1Core.position.z = -0.06;
+  fall1Group.add(fall1Mesh, fall1Core);
+  root.add(fall1Group);
+
+  // 第一層與第二層交接處激濺浪花台
+  const splash1Mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+  const splash1 = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.0, 0.5, 16), splash1Mat);
+  splash1.position.set(0, 19.0, 8.2);
+  root.add(splash1);
+
+  // [第二層・中層飛瀑] (自中段岩台奔流折疊傾瀉)
+  const fall2Group = new THREE.Group();
+  fall2Group.position.set(0, 13.8, 6.2);
+  fall2Group.rotation.x = 0.08; // 順著岩壁微傾
+  const fall2Mesh = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 10.5), fallMat);
+  const fall2Core = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 10.5), waterCoreMat);
+  fall2Core.position.z = -0.06;
+  fall2Group.add(fall2Mesh, fall2Core);
+  root.add(fall2Group);
+
+  // 第二層撞擊白浪翻滾水沫環
+  const splash2 = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 2.8, 0.6, 16), splash1Mat);
+  splash2.position.set(0, 8.6, 4.4);
+  root.add(splash2);
+
+  // [第三層・下層飛瀑] (最寬闊，滔滔奔流入底層深潭)
+  const fall3Group = new THREE.Group();
+  fall3Group.position.set(0, 4.5, 2.8);
+  fall3Group.rotation.x = 0.12;
+  const fall3Mesh = new THREE.Mesh(new THREE.PlaneGeometry(6.6, 9.2), fallMat);
+  const fall3Core = new THREE.Mesh(new THREE.PlaneGeometry(6.0, 9.2), waterCoreMat);
+  fall3Core.position.z = -0.06;
+  fall3Group.add(fall3Mesh, fall3Core);
+  root.add(fall3Group);
+
+  // 4. 底層天然深潭與環潭巨石群
+  const pondMat = new THREE.MeshStandardMaterial({
+    color: 0x00838f,
+    roughness: 0.1,
+    metalness: 0.45,
+    transparent: true,
+    opacity: 0.88
+  });
+  const pond = new THREE.Mesh(new THREE.CylinderGeometry(9.5, 9.5, 0.45, 32), pondMat);
+  pond.position.set(0, 0.22, 0);
+  pond.receiveShadow = true;
   root.add(pond);
 
+  // 環潭天然碎石抱擁
+  for (let a = 0; a < Math.PI * 2; a += 0.38) {
+    if (a > 3.6 && a < 5.8) continue; // 朝向觀瀑亭留出視野開口
+    const bx = Math.cos(a) * 9.6;
+    const bz = Math.sin(a) * 9.6;
+    const boulder = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85 + Math.random() * 0.4, 0), rockMat1);
+    boulder.position.set(bx, 0.4, bz);
+    boulder.rotation.set(Math.random(), Math.random(), Math.random());
+    root.add(boulder);
+  }
+
+  // 5. 瀑布激起的水霧與負離子粒子（三層瀑潭水霧升騰飄渺）
   const mistGeo = new THREE.BufferGeometry();
-  const mistCount = 70;
+  const mistCount = 110;
   const mistPos = new Float32Array(mistCount * 3);
   for (let i = 0; i < mistCount; i++) {
-    mistPos[i * 3] = (Math.random() - 0.5) * 8.5;
-    mistPos[i * 3 + 1] = Math.random() * 5.5 + 0.3;
-    mistPos[i * 3 + 2] = (Math.random() - 0.5) * 6.5;
+    mistPos[i * 3] = (Math.random() - 0.5) * 9.5;
+    mistPos[i * 3 + 1] = Math.random() * 8.0 + 0.3;
+    mistPos[i * 3 + 2] = (Math.random() - 0.5) * 8.5;
   }
   mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPos, 3));
-  const mistMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.48, transparent: true, opacity: 0.65 });
+  const mistMat = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 0.52,
+    transparent: true,
+    opacity: 0.68
+  });
   const mist = new THREE.Points(mistGeo, mistMat);
   root.add(mist);
 
+  // 6. 動態更新器：真實水流 UV 高速奔騰 ＆ 水花脈動 ＆ 水霧飄揚
   animatedUpdaters.push((delta, time) => {
-    fall1.scale.x = 1.0 + Math.sin(time * 8) * 0.04;
-    fall2.scale.x = 1.0 + Math.cos(time * 8) * 0.04;
+    // 飛瀑 UV 垂直高速流動（奔流直下效果）
+    waterfallTex.offset.y -= delta * 3.4;
 
+    // 瀑布水幕左右翻滾微動
+    fall1Group.scale.x = 1.0 + Math.sin(time * 7) * 0.035;
+    fall2Group.scale.x = 1.0 + Math.cos(time * 6.5) * 0.04;
+    fall3Group.scale.x = 1.0 + Math.sin(time * 8) * 0.045;
+
+    // 水花撞擊台脈動呼吸
+    splash1.scale.set(1.0 + Math.sin(time * 10) * 0.08, 1.0, 1.0 + Math.cos(time * 10) * 0.08);
+    splash2.scale.set(1.0 + Math.cos(time * 9) * 0.09, 1.0, 1.0 + Math.sin(time * 9) * 0.09);
+
+    // 水霧粒子升騰翻捲
     const arr = mistGeo.attributes.position.array;
     for (let i = 0; i < mistCount; i++) {
-      arr[i * 3 + 1] += delta * 1.5;
-      if (arr[i * 3 + 1] > 6.2) {
+      arr[i * 3 + 1] += delta * 1.8;
+      arr[i * 3] += Math.sin(time * 2.5 + i) * 0.02;
+      if (arr[i * 3 + 1] > 8.5) {
         arr[i * 3 + 1] = 0.3;
       }
     }

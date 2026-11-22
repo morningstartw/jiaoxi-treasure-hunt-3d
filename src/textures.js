@@ -199,3 +199,53 @@ export function createSkyGradientTexture() {
   const texture = new THREE.CanvasTexture(canvas);
   return texture;
 }
+
+// 產生動態奔騰飛瀑浪花紋理（高密度縱向奔流白沫與水絲）
+export function createWaterfallTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // 背景：透澈蔚藍激流
+  const grad = ctx.createLinearGradient(0, 0, 256, 0);
+  grad.addColorStop(0, 'rgba(165, 216, 255, 0.7)');
+  grad.addColorStop(0.25, 'rgba(255, 255, 255, 0.95)');
+  grad.addColorStop(0.5, 'rgba(224, 247, 250, 0.85)');
+  grad.addColorStop(0.75, 'rgba(255, 255, 255, 0.95)');
+  grad.addColorStop(1, 'rgba(165, 216, 255, 0.7)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 256, 512);
+
+  // 縱向奔騰白色水沫浪花與水絲
+  ctx.strokeStyle = '#ffffff';
+  for (let i = 0; i < 450; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 512;
+    const len = Math.random() * 70 + 25;
+    ctx.lineWidth = Math.random() * 2.8 + 1.2;
+    ctx.globalAlpha = Math.random() * 0.75 + 0.25;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + (Math.random() - 0.5) * 4, y + len);
+    ctx.stroke();
+  }
+
+  // 激流泡沫顆粒
+  for (let i = 0; i < 60; i++) {
+    const x = Math.random() * 256;
+    const y = Math.random() * 512;
+    const r = Math.random() * 3.5 + 1.5;
+    ctx.fillStyle = '#ffffff';
+    ctx.globalAlpha = Math.random() * 0.8 + 0.2;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1, 2);
+  return texture;
+}

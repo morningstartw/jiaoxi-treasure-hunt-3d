@@ -12,8 +12,10 @@ import {
 
 /**
  * 建立真正的正向雙面看板網格群組
- * 正面與背面皆共用標準正向貼圖，透過幾何體 UV 水平反轉 (u = 1 - u)
- * 完美達成雙面皆為正向左至右閱讀、字體完全無鏡像、模型正常法向量、零剔除破圖！
+ * 正面與背面皆共用標準正向貼圖與幾何體：
+ * - 正面網格朝向 +Z (迎向正面觀看者，由左至右正向閱讀)
+ * - 背面網格朝向 -Z (旋轉 180 度迎向後方觀看者，由左至右正向閱讀)
+ * 前後雙面皆為獨立實體平面，法向量朝外，文字皆為自然正向，絕無任何鏡像反字與破圖！
  * @param {number} width 看板 3D 寬度
  * @param {number} height 看板 3D 高度
  * @param {number} canvasWidth Canvas 像素寬度
@@ -33,22 +35,16 @@ function createDoubleSidedBoardMesh(width, height, canvasWidth, canvasHeight, dr
   drawFn(ctx, canvasWidth, canvasHeight);
 
   const texture = new THREE.CanvasTexture(canvas);
-  const mat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+  const mat = new THREE.MeshBasicMaterial({ map: texture });
 
-  // 2. 正面網格（朝向 +Z，正常 UV）
+  // 2. 正面網格（朝向 +Z，迎向前方旅人）
   const frontGeo = new THREE.PlaneGeometry(width, height);
   const frontMesh = new THREE.Mesh(frontGeo, mat);
   frontMesh.position.set(0, 0, zOffset);
   group.add(frontMesh);
 
-  // 3. 背面網格（朝向 -Z，旋轉 180 度，透過 UV 反轉抵消 180 度剛體旋轉，無鏡像、文字絕對正向）
+  // 3. 背面網格（朝向 -Z，繞 Y 軸旋轉 180 度迎向後方旅人，由左至右正向閱讀）
   const backGeo = new THREE.PlaneGeometry(width, height);
-  const uvs = backGeo.attributes.uv;
-  for (let i = 0; i < uvs.count; i++) {
-    uvs.setX(i, 1 - uvs.getX(i));
-  }
-  uvs.needsUpdate = true;
-
   const backMesh = new THREE.Mesh(backGeo, mat);
   backMesh.position.set(0, 0, -zOffset);
   backMesh.rotation.y = Math.PI;
@@ -1335,20 +1331,13 @@ function createPhotoDisplay(parent, imgUrl, x, y, z, label) {
     const frame = new THREE.Mesh(new THREE.BoxGeometry(3.2, 2.2, 0.15), frameMat);
     frame.position.set(x, y, z);
 
-    const photoMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-    // 正面照片
+    const photoMat = new THREE.MeshBasicMaterial({ map: texture });
+    // 正面照片（朝向 +Z）
     const photoFront = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
     photoFront.position.set(x, y, z + 0.08);
 
-    // 背面照片（雙面皆可觀賞實景照片，透過幾何體 UV 水平反轉抵消 180 度旋轉，正向無鏡像）
-    const backGeo = new THREE.PlaneGeometry(3.0, 2.0);
-    const uvs = backGeo.attributes.uv;
-    for (let i = 0; i < uvs.count; i++) {
-      uvs.setX(i, 1 - uvs.getX(i));
-    }
-    uvs.needsUpdate = true;
-
-    const photoBack = new THREE.Mesh(backGeo, photoMat);
+    // 背面照片（朝向 -Z，旋轉 180 度迎向後方，天然正向無鏡像）
+    const photoBack = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.0), photoMat);
     photoBack.position.set(x, y, z - 0.08);
     photoBack.rotation.y = Math.PI;
 

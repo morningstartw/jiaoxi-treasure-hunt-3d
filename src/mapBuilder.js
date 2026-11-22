@@ -12,6 +12,7 @@ import {
 export function buildJiaoxiWorld(scene) {
   const interactiveObjects = [];
   const animatedUpdaters = [];
+  const colliders = [];
 
   // 1. 環境光與太陽光（明亮微風午後，通透逼真）
   const hemiLight = new THREE.HemisphereLight(0xffffff, 0x667788, 1.0);
@@ -52,7 +53,10 @@ export function buildJiaoxiWorld(scene) {
   createRoadsAndLanterns(scene);
 
   // 5. 礁溪在地溫泉商圈街景與建築（溫泉飯店、特產伴手禮店、小吃舖、長椅、販賣機）
-  buildJiaoxiTownBuildings(scene);
+  buildJiaoxiTownBuildings(scene, colliders);
+
+  // 註冊地圖實體碰撞體（杜絕角色穿模）
+  registerWorldColliders(colliders);
 
   // 景觀標誌看板輔助生成器（雙面、厚度、不穿模）
   function createSignpost(title, x, y, z, rotY = 0) {
@@ -210,7 +214,8 @@ export function buildJiaoxiWorld(scene) {
 
   return {
     interactiveObjects,
-    animatedUpdaters
+    animatedUpdaters,
+    colliders
   };
 }
 
@@ -342,18 +347,22 @@ function createStoneLantern(parent, x, y, z) {
 }
 
 // 礁溪在地溫泉商圈生活街景群（飯店、特產行、小吃店、長椅、販賣機）
-function buildJiaoxiTownBuildings(scene) {
-  // 建築 A：礁溪溫泉大飯店 (Jiaoxi Hot Spring Grand Hotel)
+function buildJiaoxiTownBuildings(scene, colliders) {
+  // 建築 A：礁溪溫泉大飯店
   createHotelBuilding(scene, -18, 0, 8, '♨ 礁溪溫泉大飯店 ♨', 0xdfe6e9);
+  colliders.push({ type: 'box', minX: -26.0, maxX: -10.0, minZ: 2.5, maxZ: 13.5 });
 
   // 建築 B：水漾溫泉度假會館
   createHotelBuilding(scene, 18, 0, 8, '♨ 水漾溫泉會館 ♨', 0xdcdde1);
+  colliders.push({ type: 'box', minX: 10.0, maxX: 26.0, minZ: 2.5, maxZ: 13.5 });
 
   // 建築 C：宜蘭名產特產伴手禮行
   createShopBuilding(scene, -18, 0, -14, '★ 宜蘭名產・牛舌餅特產店 ★', 0xf5f6fa, '#e74c3c');
+  colliders.push({ type: 'box', minX: -25.5, maxX: -10.5, minZ: -19.0, maxZ: -9.0 });
 
   // 建築 D：礁溪溫泉拉麵・蔥油餅小吃舖
   createShopBuilding(scene, 18, 0, -14, '🍜 礁溪蔥油餅・溫泉小吃舖 🍜', 0xf1ebd9, '#d35400');
+  colliders.push({ type: 'box', minX: 10.5, maxX: 25.5, minZ: -19.0, maxZ: -9.0 });
 
   // 街邊生活細節：木長椅與紅色自動販賣機
   createStreetBench(scene, -6, 0, -1.8);
@@ -362,7 +371,45 @@ function buildJiaoxiTownBuildings(scene) {
   createStreetBench(scene, 6, 0, -8.2);
 
   createVendingMachine(scene, -8.5, 0, -1.5);
+  colliders.push({ type: 'box', minX: -9.1, maxX: -7.9, minZ: -2.0, maxZ: -1.0 });
+
   createVendingMachine(scene, 8.5, 0, -1.5);
+  colliders.push({ type: 'box', minX: 7.9, maxX: 9.1, minZ: -2.0, maxZ: -1.0 });
+}
+
+// 註冊三大景點與中央廣場的實體障礙碰撞體
+function registerWorldColliders(colliders) {
+  // 1. 中央廣場任務佈告板
+  colliders.push({ type: 'box', minX: -2.5, maxX: 2.5, minZ: -3.4, maxZ: -2.5 });
+
+  // 2. 文化寶箱
+  colliders.push({ type: 'box', minX: 3.2, maxX: 4.8, minZ: -0.6, maxZ: 0.6 });
+
+  // 3. 協天廟大殿主體（阻擋穿入紅牆）
+  colliders.push({ type: 'box', minX: 25.5, maxX: 44.5, minZ: -33.5, maxZ: -19.0 });
+  // 協天廟石獅子一對
+  colliders.push({ type: 'box', minX: 29.3, maxX: 30.7, minZ: -17.2, maxZ: -15.8 });
+  colliders.push({ type: 'box', minX: 39.3, maxX: 40.7, minZ: -17.2, maxZ: -15.8 });
+  // 協天廟天公爐
+  colliders.push({ type: 'circle', x: 35.0, z: -17.2, radius: 0.95 });
+  // 協天廟山門四柱
+  colliders.push({ type: 'circle', x: 30.5, z: -11.5, radius: 0.4 });
+  colliders.push({ type: 'circle', x: 33.2, z: -11.5, radius: 0.4 });
+  colliders.push({ type: 'circle', x: 36.8, z: -11.5, radius: 0.4 });
+  colliders.push({ type: 'circle', x: 39.5, z: -11.5, radius: 0.4 });
+
+  // 4. 湯圍溝泡腳池（石砌凸出基台，阻擋踩入池中穿模）
+  colliders.push({ type: 'box', minX: -40.2, maxX: -29.8, minZ: -18.4, maxZ: -11.6 });
+  // 湯圍溝四根木柱
+  colliders.push({ type: 'circle', x: -43.0, z: -21.0, radius: 0.35 });
+  colliders.push({ type: 'circle', x: -27.0, z: -21.0, radius: 0.35 });
+  colliders.push({ type: 'circle', x: -43.0, z: -9.0, radius: 0.35 });
+  colliders.push({ type: 'circle', x: -27.0, z: -9.0, radius: 0.35 });
+
+  // 5. 五峰旗後方巨型斷崖山岩（阻擋穿過岩壁掉進山體）
+  colliders.push({ type: 'box', minX: -26.0, maxX: 26.0, minZ: 53.0, maxZ: 85.0 });
+  // 五峰旗瀑布深潭
+  colliders.push({ type: 'circle', x: 0, z: 54.0, radius: 8.6 });
 }
 
 // 溫泉度假飯店大樓（多層、景觀窗、頂樓招牌）

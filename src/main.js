@@ -20,10 +20,10 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 // 建構礁溪 3D 場景
-const { interactiveObjects, animatedUpdaters } = buildJiaoxiWorld(scene);
+const { interactiveObjects, animatedUpdaters, colliders } = buildJiaoxiWorld(scene);
 
-// 初始化玩家控制器
-const player = new PlayerController(scene, camera, renderer.domElement);
+// 初始化玩家控制器（傳入實體碰撞體，杜絕穿模）
+const player = new PlayerController(scene, camera, renderer.domElement, colliders);
 
 // 當前可互動的物件
 let currentNearbyObject = null;

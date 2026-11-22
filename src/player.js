@@ -4,10 +4,11 @@ import { passport } from './passport.js';
 import { TASKS_DATA, SCENES_DATA } from './culturalData.js';
 
 export class PlayerController {
-  constructor(scene, camera, domElement) {
+  constructor(scene, camera, domElement, colliders = []) {
     this.scene = scene;
     this.camera = camera;
     this.domElement = domElement;
+    this.colliders = colliders;
 
     // 玩家狀態
     this.position = new THREE.Vector3(0, 0, 3);
@@ -25,7 +26,7 @@ export class PlayerController {
     this.cameraYaw = Math.PI; // 水平旋轉
     this.cameraPitch = 0.35; // 垂直俯仰角 (rad)
     this.cameraDistance = 8.5; // 縮放距離
-    this.minDistance = 4.0;
+    this.minDistance = 3.5;
     this.maxDistance = 22.0;
 
     // 滑鼠交互
@@ -51,7 +52,7 @@ export class PlayerController {
     this.mesh = new THREE.Group();
     this.mesh.position.copy(this.position);
 
-    // 身體/上衣（藍色旅人防風外套）
+    // 身體/外套
     const bodyGeo = new THREE.CylinderGeometry(0.35, 0.38, 0.9, 8);
     const bodyMat = new THREE.MeshLambertMaterial({ color: 0x0984e3 });
     const body = new THREE.Mesh(bodyGeo, bodyMat);
@@ -67,7 +68,7 @@ export class PlayerController {
     head.castShadow = true;
     this.mesh.add(head);
 
-    // 旅人探險帽
+    // 旅人帽子
     const hatBrimGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.05, 12);
     const hatMat = new THREE.MeshLambertMaterial({ color: 0xdfe6e9 });
     const hatBrim = new THREE.Mesh(hatBrimGeo, hatMat);
@@ -79,7 +80,7 @@ export class PlayerController {
     hatTop.position.y = 1.74;
     this.mesh.add(hatTop);
 
-    // 雙肩後背包
+    // 雙肩背包
     const bagGeo = new THREE.BoxGeometry(0.4, 0.55, 0.28);
     const bagMat = new THREE.MeshLambertMaterial({ color: 0xd35400 });
     const bag = new THREE.Mesh(bagGeo, bagMat);
@@ -164,9 +165,32 @@ export class PlayerController {
     this.arrowMesh.material.color.setHex(state.canOpenChest ? 0xffd700 : 0xff9f43);
   }
 
+  // 實體碰撞檢測核心函數（測試指定座標 (x, z) 半徑 r 是否撞擊任何實體）
+  isColliding(x, z, r = 0.45) {
+    // 邊界防禦
+    if (x < -92 || x > 92 || z < -92 || z > 92) return true;
+
+    for (let i = 0; i < this.colliders.length; i++) {
+      const c = this.colliders[i];
+      if (c.type === 'box') {
+        const closestX = Math.max(c.minX, Math.min(x, c.maxX));
+        const closestZ = Math.max(c.minZ, Math.min(z, c.maxZ));
+        const distSq = (x - closestX) ** 2 + (z - closestZ) ** 2;
+        if (distSq < r ** 2) {
+          return true; // 發生碰撞，阻擋！
+        }
+      } else if (c.type === 'circle') {
+        const distSq = (x - c.x) ** 2 + (z - c.z) ** 2;
+        if (distSq < (c.radius + r) ** 2) {
+          return true; // 發生碰撞，阻擋！
+        }
+      }
+    }
+    return false;
+  }
+
   bindEvents() {
     window.addEventListener('keydown', (e) => {
-      // 避免在彈窗輸入或開啟時被劫持
       switch (e.code) {
         case 'KeyW':
         case 'ArrowUp':
@@ -216,12 +240,10 @@ export class PlayerController {
       }
     });
 
-    // 視窗失去焦點時清空按鍵，防止卡住自動行走
     window.addEventListener('blur', () => {
       this.clearKeys();
     });
 
-    // 滑鼠左鍵 (button 0) 或右鍵 (button 2) 拖曳旋轉視角
     this.domElement.addEventListener('mousedown', (e) => {
       if (e.button === 0 || e.button === 2) {
         this.isDragging = true;
@@ -263,7 +285,6 @@ export class PlayerController {
   }
 
   update(delta, time = 0, isModalActive = false) {
-    // 若當前有彈窗（問答/護照/寶箱）開啟，鎖定移動與行走音效
     if (isModalActive) {
       this.isMoving = false;
       this.leftLeg.rotation.x = 0;
@@ -275,10 +296,8 @@ export class PlayerController {
 
     const moveDir = new THREE.Vector3();
     const camForward = new THREE.Vector3(Math.sin(this.cameraYaw), 0, Math.cos(this.cameraYaw)).normalize();
-    // 使用精確的三維叉積 (Forward x Up) 取得真正的右側向量
     const camRight = new THREE.Vector3().crossVectors(camForward, new THREE.Vector3(0, 1, 0)).normalize();
 
-    // 嚴格保證：W 前進、S 後退、A 往左、D 往右
     if (this.keys.forward) moveDir.add(camForward);
     if (this.keys.backward) moveDir.sub(camForward);
     if (this.keys.left) moveDir.sub(camRight);
@@ -288,9 +307,21 @@ export class PlayerController {
       moveDir.normalize();
       this.isMoving = true;
       const speed = this.keys.shift ? this.runSpeed : this.walkSpeed;
-      this.position.addScaledVector(moveDir, speed * delta);
 
-      // 平滑旋轉至移動方向
+      // 分離軸滑行碰撞檢測（Separated Axis Sweep Collision）：
+      // 斜撞牆壁時沿著牆面流暢滑行，100% 杜絕穿透建築物！
+      const deltaX = moveDir.x * speed * delta;
+      const deltaZ = moveDir.z * speed * delta;
+      const playerRadius = 0.45;
+
+      if (!this.isColliding(this.position.x + deltaX, this.position.z, playerRadius)) {
+        this.position.x += deltaX;
+      }
+      if (!this.isColliding(this.position.x, this.position.z + deltaZ, playerRadius)) {
+        this.position.z += deltaZ;
+      }
+
+      // 平滑轉向
       const targetAngle = Math.atan2(moveDir.x, moveDir.z);
       let diff = targetAngle - this.currentRotationY;
       while (diff < -Math.PI) diff += Math.PI * 2;
@@ -314,20 +345,31 @@ export class PlayerController {
       this.rightLeg.rotation.x = 0;
     }
 
-    // 邊界限制
-    this.position.x = Math.max(-95, Math.min(95, this.position.x));
-    this.position.z = Math.max(-95, Math.min(95, this.position.z));
-    this.position.y = 0; // 平整地面，穩定貼地
-
+    this.position.y = 0;
     this.mesh.position.copy(this.position);
     this.updateGuideArrow(time);
     this.updateCamera(delta);
   }
 
   updateCamera(delta) {
-    const offsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
-    const offsetY = Math.sin(this.cameraPitch) * this.cameraDistance;
-    const offsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * this.cameraDistance;
+    // 智慧相機防穿牆：若相機與玩家視線被建築物阻擋，自動將相機拉近至障礙物表面前方，絕不穿透建築內部！
+    let safeDistance = this.cameraDistance;
+    for (let step = 1; step <= 8; step++) {
+      const testDist = this.cameraDistance * (1 - (step - 1) * 0.1);
+      if (testDist < this.minDistance) break;
+      const testOffX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * testDist;
+      const testOffZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * testDist;
+      const testCamX = this.position.x - testOffX;
+      const testCamZ = this.position.z - testOffZ;
+      if (!this.isColliding(testCamX, testCamZ, 0.35)) {
+        safeDistance = testDist;
+        break;
+      }
+    }
+
+    const offsetX = Math.sin(this.cameraYaw) * Math.cos(this.cameraPitch) * safeDistance;
+    const offsetY = Math.sin(this.cameraPitch) * safeDistance;
+    const offsetZ = Math.cos(this.cameraYaw) * Math.cos(this.cameraPitch) * safeDistance;
 
     const targetCamPos = new THREE.Vector3(
       this.position.x - offsetX,
@@ -335,7 +377,7 @@ export class PlayerController {
       this.position.z - offsetZ
     );
 
-    this.camera.position.lerp(targetCamPos, 0.15);
+    this.camera.position.lerp(targetCamPos, 0.2);
     this.camera.lookAt(this.position.x, this.position.y + 1.5, this.position.z);
   }
 
